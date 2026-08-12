@@ -1,0 +1,25 @@
+[package]
+name = "math-me"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+authors = ["Shaun McDonogh"]
+
+[dependencies]
+eframe = "0.35"
+egui_extras = { version = "0.35", features = ["svg"] }
+egui_plot = "0.36"
+image = { version = "0.25", default-features = false, features = ["png"] }
+mitex = "0.2"
+rfd = "0.17"
+serde = { version = "1.0.229", features = ["derive"] }
+# `float_roundtrip` because a lesson is saved and replayed: without it
+# serde_json parses floats to best-effort precision and a plot's parameter
+# comes back a bit-width off what was written.
+serde_json = { version = "1.0.151", features = ["float_roundtrip"] }
+thiserror = "2.0.20"
+typst = "0.15"
+typst-as-lib = { version = "0.16", features = ["typst-kit-fonts", "typst-kit-embed-fonts"] }
+typst-layout = "0.15"
+typst-pdf = "0.15"
+typst-svg = "0.15"

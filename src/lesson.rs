@@ -158,6 +158,18 @@ impl Lesson {
             }
         }
 
+        for block in &self.blocks {
+            let Block::Figure(figure) = block else { continue };
+            for svg in std::iter::once(figure.svg.as_str()).chain(figure.print_svg.as_deref()) {
+                if let Err(error) = crate::figure::tree(svg) {
+                    findings.push(AuditFinding::FigureError {
+                        caption: figure.caption.clone(),
+                        message: error.to_string(),
+                    });
+                }
+            }
+        }
+
         findings
     }
 
@@ -318,6 +330,19 @@ impl LessonBuilder {
         self
     }
 
+    /// Declare that `ch` names a vector: every occurrence in every formula is
+    /// set in sky blue.
+    pub fn vector(mut self, ch: char) -> Self {
+        self.glossary.insert_role(ch, glossary::Role::Vector);
+        self
+    }
+
+    /// Declare that `ch` names a matrix; same sky blue as [`Self::vector`].
+    pub fn matrix(mut self, ch: char) -> Self {
+        self.glossary.insert_role(ch, glossary::Role::Matrix);
+        self
+    }
+
     /// Finish the lesson. Infallible — a malformed formula or an unexplained
     /// term still builds; call [`Lesson::audit`] to find them.
     pub fn build(self) -> Lesson {
@@ -391,6 +416,8 @@ pub enum AuditFinding {
     UnexplainedTerm { latex: String, key: String },
     /// A term's tooltip would print a character egui cannot draw.
     UnrenderableTooltip { latex: String, key: String, character: char },
+    /// A figure's SVG did not parse, so the viewer would show it blank.
+    FigureError { caption: String, message: String },
     /// A tunable plot curve's expression did not parse, so the curve would be
     /// missing from the plot.
     ExpressionError { expression: String, message: String },

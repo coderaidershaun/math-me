@@ -129,7 +129,7 @@ fn figure_block(ui: &mut egui::Ui, figure: &Figure, index: usize) {
     ui.add_space(6.0);
     ui.vertical_centered(|ui| {
         let uri = format!("bytes://figure-{index}.svg");
-        let bytes: Arc<[u8]> = Arc::from(figure.svg.as_bytes());
+        let bytes = crate::figure::flattened(&uri, &figure.svg);
         ui.add(egui::Image::from_bytes(uri, bytes).fit_to_original_size(1.0));
     });
     caption(ui, &figure.caption);

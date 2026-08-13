@@ -35,7 +35,8 @@ lesson.show()                                 // opens the viewer
 3. **Plot param names take alphanumerics and `_` only** (`expr.rs::is_name_continuation`). A name with a space or dot fails **silently**: the slider renders but no curve reads it, and the audit reports it as *unused* rather than broken. Use `log10_q`, never `log10 q`.
 4. **`.text()` prose renders literally.** Currency in prose is a bare `$` (a `\$` shows the backslash on screen); `\$` belongs only inside math fragments.
 5. **The viewer lays out the whole document up front.** A long lesson takes 15+ minutes to open — the ~30 page budget is also the performance fix. Never sit waiting on a full interactive render while iterating; use `MATH_ME_SHOT` for a one-off look.
-6. **Two gates, different jobs.** `cargo build --bin lesson-{slug}` clean is the existence gate — never report done without it. `lesson.audit()` empty is the quality gate (uncompilable math, unexplained terms, unparsable plot expressions, unread params); it fires the `debug_assert!` on a debug run, so a lesson that only builds in release is not finished.
+6. **`\mathbf` is not in the mitex prelude** — it fails with "unknown variable: mitexmathbf". For a bold/vector symbol use a plain letter or a convention symbol instead (e.g. `\iota` for the ones vector, which is standard in econometrics anyway).
+7. **Two gates, different jobs.** `cargo build --bin lesson-{slug}` clean is the existence gate — never report done without it. `lesson.audit()` empty is the quality gate (uncompilable math, unexplained terms, unparsable plot expressions, unread params); it fires the `debug_assert!` on a debug run, so a lesson that only builds in release is not finished.
 
 ## Working discipline
 

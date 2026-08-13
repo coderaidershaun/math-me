@@ -34,6 +34,8 @@ const DISPLAY_PT: f32 = 17.0;
 const INK: &str = "#E8E6E3";
 /// Ink colour of a hovered character. `recolour` swaps one for the other.
 const INK_HOVER: &str = "#4ADE80";
+/// Sky blue, for characters a lesson declares vectors or matrices.
+const INK_ACCENT: &str = "#87CEEB";
 
 /// A compiled formula: the picture, and everything needed to interact with it.
 pub(crate) struct RenderedMath {
@@ -42,6 +44,8 @@ pub(crate) struct RenderedMath {
     /// normal one, clipped to a term, turns that term green without a second
     /// Typst compile or any pixel-level trickery.
     pub svg_hover: Arc<[u8]>,
+    /// The same drawing in sky blue, for vector/matrix glyphs.
+    pub svg_accent: Arc<[u8]>,
     pub page_size_pt: egui::Vec2,
     pub terms: Vec<Term>,
     pub latex: String,
@@ -57,12 +61,12 @@ pub(crate) struct RenderedMath {
 /// fraction. Returns the rewritten SVG and how many attributes it touched; a
 /// count of zero means the emitted format has moved and the hover recolour
 /// would silently do nothing (see the `recolour_finds_the_ink` test).
-fn recolour(svg: &str) -> (String, usize) {
+fn recolour(svg: &str, ink: &str) -> (String, usize) {
     let mut out = svg.to_owned();
     let mut touched = 0;
     for attribute in ["fill", "stroke"] {
         let from = format!("{attribute}=\"{}\"", INK.to_ascii_lowercase());
-        let to = format!("{attribute}=\"{}\"", INK_HOVER.to_ascii_lowercase());
+        let to = format!("{attribute}=\"{}\"", ink.to_ascii_lowercase());
         touched += out.matches(&from).count();
         out = out.replace(&from, &to);
     }
@@ -150,15 +154,17 @@ pub(crate) fn compile(latex: &str, display: bool) -> Result<RenderedMath, String
         .map_err(|error| error.to_string())??;
 
     let svg = typst_svg::svg_merged(&doc, &Default::default(), Abs::zero());
-    let (hover, recoloured) = recolour(&svg);
+    let (hover, recoloured) = recolour(&svg, INK_HOVER);
     debug_assert!(
         recoloured > 0,
         "no ink to recolour in the emitted SVG — hover would not turn green"
     );
+    let (accent, _) = recolour(&svg, INK_ACCENT);
 
     Ok(RenderedMath {
         svg: Arc::from(svg.into_bytes()),
         svg_hover: Arc::from(hover.into_bytes()),
+        svg_accent: Arc::from(accent.into_bytes()),
         page_size_pt,
         terms,
         latex: latex.to_owned(),
@@ -284,7 +290,7 @@ mod tests {
     fn recolour_finds_the_ink() {
         let rendered = compile(r"\sigma_t^2 = \omega", true).unwrap();
         let svg = std::str::from_utf8(&rendered.svg).unwrap();
-        let (hover, recoloured) = recolour(svg);
+        let (hover, recoloured) = recolour(svg, INK_HOVER);
 
         assert_eq!(recoloured, 5, "one fill per glyph");
         assert!(!hover.contains(&INK.to_ascii_lowercase()));
@@ -297,7 +303,7 @@ mod tests {
         let svg = std::str::from_utf8(&fraction.svg).unwrap();
         let stroke = format!("stroke=\"{}\"", INK.to_ascii_lowercase());
         assert!(svg.contains(&stroke), "the bar is drawn some other way now");
-        assert!(!recolour(svg).0.contains(&INK.to_ascii_lowercase()));
+        assert!(!recolour(svg, INK_HOVER).0.contains(&INK.to_ascii_lowercase()));
     }
 
     fn keys(latex: &str) -> Vec<String> {

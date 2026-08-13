@@ -45,6 +45,14 @@ struct Entry {
     meaning: String,
 }
 
+/// What kind of linear-algebra object a character names; both kinds draw the
+/// same sky blue accent.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub(crate) enum Role {
+    Vector,
+    Matrix,
+}
+
 /// What a lesson has taught about its own formulas.
 ///
 /// Built by [`crate::lesson::LessonBuilder::explain`] and
@@ -56,6 +64,9 @@ struct Entry {
 pub(crate) struct Glossary {
     terms: HashMap<String, Entry>,
     chars: HashMap<char, Entry>,
+    /// `serde(default)` so lessons saved before roles existed still load.
+    #[serde(default)]
+    roles: HashMap<char, Role>,
 }
 
 impl Glossary {
@@ -68,6 +79,14 @@ impl Glossary {
     /// it matches whichever decorative Unicode variant Typst actually draws.
     pub(crate) fn insert_char(&mut self, ch: char, name: String, meaning: String) {
         self.chars.insert(symbols::normalize(ch), Entry { name, meaning });
+    }
+
+    pub(crate) fn insert_role(&mut self, ch: char, role: Role) {
+        self.roles.insert(symbols::normalize(ch), role);
+    }
+
+    pub(crate) fn role(&self, ch: char) -> Option<Role> {
+        self.roles.get(&symbols::normalize(ch)).copied()
     }
 
     /// Explain a term: the atoms it is made of, and the key

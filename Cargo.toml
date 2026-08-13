@@ -19,6 +19,10 @@ path = "lessons/lesson-kalman-filter.rs"
 name = "lesson-exponents"
 path = "lessons/lesson-exponents.rs"
 
+[[bin]]
+name = "lesson-algebra-to-linear"
+path = "lessons/lesson-algebra-to-linear.rs"
+
 [dependencies]
 eframe = "0.35"
 egui_extras = { version = "0.35", features = ["svg"] }
@@ -37,3 +41,5 @@ typst-as-lib = { version = "0.16", features = ["typst-kit-fonts", "typst-kit-emb
 typst-layout = "0.15"
 typst-pdf = "0.15"
 typst-svg = "0.15"
+# Matched to the resvg egui_extras pulls in.
+usvg = "0.45"

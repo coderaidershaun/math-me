@@ -23,6 +23,7 @@
 
 mod error;
 mod expr;
+mod figure;
 mod formula;
 mod glossary;
 mod lesson;

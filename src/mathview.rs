@@ -14,6 +14,7 @@ use eframe::egui::{self, Color32};
 
 use crate::formula::{self, RenderedMath};
 use crate::glossary::Glossary;
+use crate::symbols;
 
 /// usvg parses the SVG's `width="Npt"` at 96dpi, so one Typst point becomes
 /// 4/3 egui points on screen. This factor belongs at the egui layer only —
@@ -108,6 +109,32 @@ impl MathRenderer {
         let uri = format!("bytes://math-{key:016x}.svg");
         egui::Image::from_bytes(uri, Arc::clone(&rendered.svg)).paint_at(ui, rect);
 
+        // Declared vector/matrix glyphs get the sky blue copy; the hover
+        // green repaints after, so a hovered term still turns all green.
+        {
+            let outside = ui.clip_rect();
+            for term in &rendered.terms {
+                for glyph in &term.glyphs {
+                    let normalized = symbols::normalize_str(&glyph.text);
+                    let mut chars = normalized.chars();
+                    let (Some(ch), None) = (chars.next(), chars.next()) else {
+                        continue;
+                    };
+                    if glossary.role(ch).is_none() {
+                        continue;
+                    }
+                    ui.set_clip_rect(on_screen(glyph.rect_pt).expand(0.75).intersect(outside));
+                    egui::Image::from_bytes(
+                        format!("bytes://math-{key:016x}-accent.svg"),
+                        Arc::clone(&rendered.svg_accent),
+                    )
+                    .show_loading_spinner(false)
+                    .paint_at(ui, rect);
+                }
+            }
+            ui.set_clip_rect(outside);
+        }
+
         // Repaint the green copy over the top, clipped to the hovered term, so
         // only that term changes colour. egui holds one clip rect at a time, so
         // a term that cannot be clipped in one piece is painted once per
@@ -152,18 +179,38 @@ impl MathRenderer {
             .gap(12.0)
             .show(|ui| {
                 ui.set_min_width(TOOLTIP_MIN_WIDTH);
-                // A whole term needs more room than a single character, so
-                // the longer it is the smaller it is set.
-                let size = if description.display.chars().count() > 3 {
-                    20.0
+                // Headline: the term's own SVG cropped and enlarged, since a
+                // glyph-concat string loses fractions and subscripts.
+                let term_pt = term.rect_pt;
+                if term_pt.is_positive() {
+                    let scale =
+                        (2.0 * PT_TO_POINTS).min((TOOLTIP_MIN_WIDTH - 24.0) / term_pt.width());
+                    let (headline, _) =
+                        ui.allocate_exact_size(term_pt.size() * scale, egui::Sense::hover());
+                    let outside = ui.clip_rect();
+                    ui.set_clip_rect(headline.intersect(outside));
+                    egui::Image::from_bytes(
+                        format!("bytes://math-{key:016x}-zoom.svg"),
+                        Arc::clone(&rendered.svg_hover),
+                    )
+                    .show_loading_spinner(false)
+                    .paint_at(
+                        ui,
+                        egui::Rect::from_min_size(
+                            headline.min - term_pt.min.to_vec2() * scale,
+                            rendered.page_size_pt * scale,
+                        ),
+                    );
+                    ui.set_clip_rect(outside);
                 } else {
-                    26.0
-                };
-                ui.label(
-                    egui::RichText::new(&description.display)
-                        .size(size)
-                        .color(HIGHLIGHT),
-                );
+                    ui.label(
+                        egui::RichText::new(&description.display)
+                            .size(20.0)
+                            .color(HIGHLIGHT),
+                    );
+                }
+                ui.add_space(6.0);
+                ui.label(egui::RichText::new(&description.name).strong());
                 ui.add_space(2.0);
                 ui.label(&description.meaning);
             });

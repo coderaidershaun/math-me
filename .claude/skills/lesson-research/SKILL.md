@@ -1,6 +1,6 @@
 ---
 name: lesson-research
-description: Step 1 of the lesson pipeline — research a topic and write the lesson straight into a compiling math-me binary at lessons/lesson-{slug}.rs (registered as a [[bin]] in Cargo.toml, with a tiny README), around 30 rendered pages max, built around 3–7 core ideas, no scratch documents and no citations. Use when dispatched by lesson-builder, or when the user says "research X into a lesson", "write the lesson binary", "start a lesson on X".
+description: Step 1 of the lesson pipeline — research a topic and write the lesson straight into a compiling math-me binary at lessons/lesson-{slug}.rs (registered as a [[bin]] in Cargo.toml, with a short //! module-comment header), around 30 rendered pages max, built around 3–7 core ideas, no scratch documents and no citations. Use when dispatched by lesson-builder, or when the user says "research X into a lesson", "write the lesson binary", "start a lesson on X".
 disable-model-invocation: false
 user-invocable: false
 ---
@@ -14,8 +14,9 @@ You are step 1 of the 3-step lesson pipeline. You research the topic and write t
 ## Artifact contract
 
 - The lesson is `lessons/lesson-{slug}.rs`, registered by **appending** one `[[bin]]` stanza to `Cargo.toml` with `name = "lesson-{slug}"`. Start by copying the shape of `lessons/template.rs`.
-- Beside it, `lessons/lesson-{slug}.md`: a README of **≤15 lines** opening with `## Prerequisites` (what to run it, what to take it — never invent a prerequisite the lesson doesn't actually lean on), then the exact run command, which you have verified works.
-- **Never overwrite any `lessons/*.rs` you did not create this run.** The dispatch tells you the slug; that file and the README are the only lesson files you touch.
+- At the top of the binary, a `//!` module comment of **≤15 lines** opening with `Prerequisites:` (what to run it, what to take it — never invent a prerequisite the lesson doesn't actually lean on), then the exact run command, which you have verified works.
+- **Write no markdown files in `lessons/` — ever.** If something absolutely must be written as markdown, put it in `.scratch/` at the project root; otherwise it belongs in module comments in the rust file.
+- **Never overwrite any `lessons/*.rs` you did not create this run.** The dispatch tells you the slug; that file is the only lesson file you touch.
 
 ## Research method
 
@@ -56,7 +57,7 @@ The lesson is built around the core ideas: depth goes to them, breadth elsewhere
 - [ ] `[[bin]]` stanza appended; nothing else in `Cargo.toml` touched
 - [ ] `lesson.audit()` is empty (debug run does not fire the assert)
 - [ ] PDF page count is ≤30
-- [ ] README exists, ≤15 lines, run command verified
+- [ ] `//!` module comment header present, ≤15 lines, run command verified; no markdown files written in `lessons/`
 - [ ] 3–7 core ideas present, each rule carrying its why
 - [ ] No citations, sources, or URLs anywhere in the lesson
 - [ ] No pre-existing `lessons/*.rs` modified

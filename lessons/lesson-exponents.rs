@@ -1,29 +1,5 @@
 //! Exponents — built from `.scratch/lesson-exponents.md`'s composed script
 //! (the `# Lesson: Exponents` section, pass-2 refined).
-//!
-//! One-shot build: no advisor/auditor/polish rounds were run on this file
-//! (waived for this build — see the report handed back with it). LaTeX
-//! substitutions made throughout, because `src/formula.rs::document()` loads
-//! no mitex prelude and these commands compile to undefined Typst variables:
-//! `\sqrt`/`\sqrt[n]{}` → written as a fractional exponent (`x^{1/2}`,
-//! `x^{1/3}`, …) or, for a bare square root, `\surd(x)` (confirmed working in
-//! `lessons/kalman-filter.rs`); `\operatorname{...}` → `\mathrm{...}`;
-//! `\tfrac` → `\frac`; `\underbrace{...}_{...}` → dropped, with the count
-//! said in prose instead; matrices (`\pmatrix`/`\begin{pmatrix}`) → described
-//! in prose rather than typeset, since the layer-9 material needs only one
-//! tiny 2x2 example. Two further traps found only by running
-//! `lesson.audit()` against every formula, not documented in the brief:
-//! **`\text{...}` also fails** the same way (`unknown variable: textmath`) —
-//! every occurrence became `\mathrm{...}`; and **a bare `\ln` with no
-//! argument** (used as a word, not a formula) triggers an internal engine
-//! panic in `src/terms.rs`'s glyph-tiling assertion rather than a clean
-//! `MathError` — rewritten as the plain word "ln" outside math mode. Also
-//! note: currency amounts in `.text()` prose take a bare `$` with **no**
-//! backslash — `Inline::Text` is rendered as literal, unprocessed egui text
-//! (see `viewer.rs::paragraph`), so a literal `\$` would show the reader a
-//! spurious backslash; only `.math()`/`.display()` LaTeX needs `\$` for a
-//! literal dollar sign inside a typeset formula (confirmed against
-//! `lessons/kalman-filter.rs`'s existing usage of both).
 
 use math_me::prelude::*;
 

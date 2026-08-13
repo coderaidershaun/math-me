@@ -13,7 +13,7 @@ You lead the 3-step, binary-first lesson pipeline. The artifact is `lessons/less
 
 Derive the slug once, before dispatching: lowercase ASCII, hyphens, 1–3 words, naming the topic ("exponents" → `exponents`; "I want to understand why GARCH works" → `garch`; "log returns confuse me" → `log-returns`). Fixed for the life of the lesson.
 
-Artifact set: `lessons/lesson-{slug}.rs`, bin `lesson-{slug}` in `Cargo.toml`, README `lessons/lesson-{slug}.md`. Never overwrite a `lessons/*.rs` this run did not create — same topic re-requested rebuilds its own file only.
+Artifact set: `lessons/lesson-{slug}.rs` (opening with a short `//!` module comment: prerequisites, then the run command), bin `lesson-{slug}` in `Cargo.toml`. **No markdown files in `lessons/` — ever.** Anything that absolutely must be markdown goes in `.scratch/` at the project root; otherwise it belongs in module comments in the rust file. Never overwrite a `lessons/*.rs` this run did not create — same topic re-requested rebuilds its own file only.
 
 ## Standing defaults — never ask clarifying questions
 
@@ -23,7 +23,7 @@ State assumptions in one line and dispatch. Unless the user's words say otherwis
 
 | Step | Who | What | Gate |
 |---|---|---|---|
-| 1 | `lesson-research` subagent | researches and writes the binary + README | build clean · audit empty · ≤ ~30 pages |
+| 1 | `lesson-research` subagent | researches and writes the binary | build clean · audit empty · ≤ ~30 pages |
 | 2 | six lens subagents, ONE parallel read-only batch → then **you** | lenses return recommendations; you weigh and edit the binary yourself | build clean · audit empty · budget held |
 | 3 | `lesson-review` subagent | edits the binary wherever content is lacking; may cut | build clean · audit empty · budget held |
 
@@ -45,7 +45,7 @@ Priority semantics: **high** = the lesson is wrong or missing something essentia
 
 ## Verification and edges
 
-After every step: `cargo build --bin lesson-{slug}` clean, `lesson.audit()` empty, page count in budget, and `git diff --stat` touches only the expected files (`lessons/lesson-{slug}.rs`, README, plus `Cargo.toml` in step 1).
+After every step: `cargo build --bin lesson-{slug}` clean, `lesson.audit()` empty, page count in budget, and `git diff --stat` touches only the expected files (`lessons/lesson-{slug}.rs`, plus `Cargo.toml` in step 1).
 
 - Missing skill file → stop and name it; do not improvise the stage inline.
 - "Finish/improve lesson X" with an existing `lessons/lesson-{slug}.rs` → skip step 1, run steps 2–3 on it.
@@ -53,4 +53,4 @@ After every step: `cargo build --bin lesson-{slug}` clean, `lesson.audit()` empt
 
 ## Progress and final report
 
-Relay progress as `[{slug}]`-prefixed one-liners at each step boundary. Final report: binary path, README path, bin name and run command, final page count, and one line per step on what it changed.
+Relay progress as `[{slug}]`-prefixed one-liners at each step boundary. Final report: binary path, bin name and run command, final page count, and one line per step on what it changed.

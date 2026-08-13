@@ -152,22 +152,18 @@ impl MathRenderer {
             .gap(12.0)
             .show(|ui| {
                 ui.set_min_width(TOOLTIP_MIN_WIDTH);
-                ui.horizontal_wrapped(|ui| {
-                    // A whole term needs more room than a single character, so
-                    // the longer it is the smaller it is set.
-                    let size = if description.display.chars().count() > 3 {
-                        20.0
-                    } else {
-                        26.0
-                    };
-                    ui.label(
-                        egui::RichText::new(&description.display)
-                            .size(size)
-                            .color(HIGHLIGHT),
-                    );
-                    ui.add_space(6.0);
-                    ui.label(egui::RichText::new(&description.name).strong());
-                });
+                // A whole term needs more room than a single character, so
+                // the longer it is the smaller it is set.
+                let size = if description.display.chars().count() > 3 {
+                    20.0
+                } else {
+                    26.0
+                };
+                ui.label(
+                    egui::RichText::new(&description.display)
+                        .size(size)
+                        .color(HIGHLIGHT),
+                );
                 ui.add_space(2.0);
                 ui.label(&description.meaning);
             });

@@ -3,7 +3,7 @@
 //! a lesson needs, demonstrated once on one small, self-consistent topic —
 //! and nothing else. The half-life content exists to make the demonstration
 //! coherent, not to teach half-life; real lessons are carved by the lesson
-//! pipeline (see the README) and land beside this file in `examples/`.
+//! pipeline (see the README) and land beside this file in `lessons/`.
 //!
 //! Covers: headings, a note, paragraphs mixing prose and inline math,
 //! `explain`/`explain_char`, display maths, a rule, a figure with a

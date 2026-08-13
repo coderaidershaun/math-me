@@ -5,6 +5,20 @@ edition = "2024"
 license = "MIT"
 authors = ["Shaun McDonogh"]
 
+# Lessons live in `lessons/`, not Cargo's conventional `examples/`, so each one
+# needs its own target stanza. The lesson pipeline appends a block per lesson it builds.
+[[bin]]
+name = "template"
+path = "lessons/template.rs"
+
+[[bin]]
+name = "lesson-kalman-filter"
+path = "lessons/lesson-kalman-filter.rs"
+
+[[bin]]
+name = "lesson-exponents"
+path = "lessons/lesson-exponents.rs"
+
 [dependencies]
 eframe = "0.35"
 egui_extras = { version = "0.35", features = ["svg"] }

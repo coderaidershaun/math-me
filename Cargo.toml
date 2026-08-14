@@ -23,6 +23,10 @@ path = "lessons/lesson-exponents.rs"
 name = "lesson-algebra-to-linear"
 path = "lessons/lesson-algebra-to-linear.rs"
 
+[[bin]]
+name = "lesson-limits"
+path = "lessons/lesson-limits.rs"
+
 [dependencies]
 eframe = "0.35"
 egui_extras = { version = "0.35", features = ["svg"] }

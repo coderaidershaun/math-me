@@ -19,6 +19,7 @@ use std::ops::Range;
 use eframe::egui;
 use typst::syntax::{Source, Span, SyntaxKind, SyntaxNode};
 
+use crate::emphasis;
 use crate::glossary::{Description, Glossary};
 use crate::symbols;
 
@@ -529,7 +530,13 @@ fn holds_operator(nodes: &[Node<'_>], glyphs: &[Resolved]) -> bool {
 /// `Glossary::explain()` reuses this on an author's LaTeX-turned-Typst
 /// fragment so a lesson's curated key lands in the same space as the one a
 /// compiled term produces.
+///
+/// Runs [`emphasis::strip_bold`] first, so a declared vector or matrix
+/// letter keys identically whether or not it was bolded — an author's
+/// `.explain()` fragment never is, a compiled term's source always is when
+/// the letter is declared.
 pub(crate) fn key(text: &str) -> String {
+    let text = emphasis::strip_bold(text);
     let mut out = String::with_capacity(text.len());
     let mut chars = text.chars().peekable();
     let mut spaced = false;
@@ -622,7 +629,8 @@ mod tests {
                 "(sigma_(t+1)^(2)-macron(sigma)^(2))",
             ),
         ] {
-            let compiled = crate::formula::compile(latex, true).expect("compile");
+            let compiled =
+                crate::formula::compile(latex, true, &crate::glossary::Glossary::default()).expect("compile");
             let [term] = &compiled.terms[..] else {
                 let keys: Vec<&str> = compiled.terms.iter().map(|term| term.key.as_str()).collect();
                 panic!("{latex} is one whole term, but partition gave {keys:?}");
@@ -632,4 +640,23 @@ mod tests {
             assert_eq!(explain_key(&typst(latex)), expected, "explain() keyed {latex}");
         }
     }
+
+    /// The regression this whole scheme exists to prevent: bolding `x` and
+    /// `L` must not turn the middle term's key into `bold(a)bold(L)bold(x)`,
+    /// or a lesson's `.explain("a L x", ...)` entry — written against the
+    /// plain, un-bolded fragment — would stop matching and the audit would
+    /// flood with `UnexplainedTerm` findings.
+    #[test]
+    fn declared_letters_key_the_same_bolded_or_not() {
+        let mut glossary = crate::glossary::Glossary::default();
+        glossary.insert_role('x', crate::glossary::Role::Vector);
+        glossary.insert_role('ε', crate::glossary::Role::Vector);
+        glossary.insert_role('L', crate::glossary::Role::Matrix);
+
+        let compiled = crate::formula::compile(r"x = a L x + \varepsilon", true, &glossary).expect("compile");
+        let keys: Vec<&str> = compiled.terms.iter().map(|term| term.key.as_str()).collect();
+
+        assert_eq!(keys, ["x", "=", "a L x", "+", "epsilon"]);
+    }
 }
+

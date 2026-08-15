@@ -14,7 +14,6 @@ use eframe::egui::{self, Color32};
 
 use crate::formula::{self, RenderedMath};
 use crate::glossary::Glossary;
-use crate::symbols;
 
 /// usvg parses the SVG's `width="Npt"` at 96dpi, so one Typst point becomes
 /// 4/3 egui points on screen. This factor belongs at the egui layer only —
@@ -59,15 +58,18 @@ impl MathRenderer {
         }
     }
 
-    fn get(&mut self, latex: &str, display: bool) -> Result<Arc<RenderedMath>, String> {
+    /// The `(latex, display)` cache key leaves the glossary out on purpose:
+    /// one `MathRenderer` serves one lesson for its whole life, so its
+    /// glossary never changes underneath a cached compile.
+    fn get(&mut self, latex: &str, display: bool, glossary: &Glossary) -> Result<Arc<RenderedMath>, String> {
         self.cache
             .entry((latex.to_owned(), display))
-            .or_insert_with(|| formula::compile(latex, display).map(Arc::new))
+            .or_insert_with(|| formula::compile(latex, display, glossary).map(Arc::new))
             .clone()
     }
 
     pub(crate) fn show(&mut self, ui: &mut egui::Ui, latex: &str, display: bool, glossary: &Glossary) {
-        let rendered = match self.get(latex, display) {
+        let rendered = match self.get(latex, display, glossary) {
             Ok(rendered) => rendered,
             Err(error) => {
                 ui.colored_label(ERROR_INK, format!("[math error: {error}]"));
@@ -108,32 +110,6 @@ impl MathRenderer {
         let key = hasher.finish();
         let uri = format!("bytes://math-{key:016x}.svg");
         egui::Image::from_bytes(uri, Arc::clone(&rendered.svg)).paint_at(ui, rect);
-
-        // Declared vector/matrix glyphs get the sky blue copy; the hover
-        // green repaints after, so a hovered term still turns all green.
-        {
-            let outside = ui.clip_rect();
-            for term in &rendered.terms {
-                for glyph in &term.glyphs {
-                    let normalized = symbols::normalize_str(&glyph.text);
-                    let mut chars = normalized.chars();
-                    let (Some(ch), None) = (chars.next(), chars.next()) else {
-                        continue;
-                    };
-                    if glossary.role(ch).is_none() {
-                        continue;
-                    }
-                    ui.set_clip_rect(on_screen(glyph.rect_pt).expand(0.75).intersect(outside));
-                    egui::Image::from_bytes(
-                        format!("bytes://math-{key:016x}-accent.svg"),
-                        Arc::clone(&rendered.svg_accent),
-                    )
-                    .show_loading_spinner(false)
-                    .paint_at(ui, rect);
-                }
-            }
-            ui.set_clip_rect(outside);
-        }
 
         // Repaint the green copy over the top, clipped to the hovered term, so
         // only that term changes colour. egui holds one clip rect at a time, so

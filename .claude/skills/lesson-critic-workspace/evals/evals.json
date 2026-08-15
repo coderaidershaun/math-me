@@ -1,0 +1,23 @@
+{
+  "skill_name": "lesson-critic",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The exponents lesson felt a bit surface level when I went through it - I could follow it but I don't feel like the ideas stuck together. Make it better.",
+      "expected_output": "lesson-critic resolves the slug to exponents, runs the interrogation + six lenses + review pipeline via subagents, and lessons/lesson-exponents.rs ends deeper and more connected without growing past ~30 pages, building clean with an empty audit. Final report is before/after with the interrogation verdict.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "run lesson-critic on the kalman filter lesson - I want the why-why-why chains pushed harder and more links to the finance side",
+      "expected_output": "Pipeline runs on lessons/lesson-kalman-filter.rs; deepen lens is primed to re-test existing chains' bedrock, apply/cement get the world-connection findings; user's finance emphasis is passed through the dispatches; gates hold.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "critique my limits lesson - did the first pass actually do a good job?",
+      "expected_output": "The interrogation delivers an honest verdict on lessons/lesson-limits.rs. If the lesson largely holds up, the pipeline runs lightly and the report says the lesson held up rather than manufacturing changes; otherwise findings drive a real enhancement pass.",
+      "files": []
+    }
+  ]
+}

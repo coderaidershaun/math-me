@@ -151,6 +151,128 @@ pub(crate) fn normalize_str(text: &str) -> String {
     text.chars().map(normalize).collect()
 }
 
+/// Map a Typst math identifier back to the character it draws.
+///
+/// mitex spells a Greek letter as a name rather than the character itself —
+/// `\varepsilon` becomes the identifier `epsilon`, `\beta` becomes `beta` —
+/// so [`crate::emphasis::bolden`] needs this to resolve an identifier to the
+/// character a declared role is keyed by. A single-letter identifier is
+/// already the character it names; anything else is looked up by its stem,
+/// the part before any `.` variant modifier (`theta.alt` is still theta),
+/// which lands a LaTeX letter and its `\var…` cousin on the one character
+/// [`normalize`] already folds both of their glyphs onto.
+pub(crate) fn ident_char(ident: &str) -> Option<char> {
+    let mut chars = ident.chars();
+    let first = chars.next()?;
+    if chars.next().is_none() {
+        return Some(first);
+    }
+
+    let stem = ident.split('.').next().unwrap_or(ident);
+    Some(match stem {
+        "alpha" => 'α',
+        "beta" => 'β',
+        "gamma" => 'γ',
+        "delta" => 'δ',
+        "epsilon" => 'ε',
+        "zeta" => 'ζ',
+        "eta" => 'η',
+        "theta" => 'θ',
+        "iota" => 'ι',
+        "kappa" => 'κ',
+        "lambda" => 'λ',
+        "mu" => 'μ',
+        "nu" => 'ν',
+        "xi" => 'ξ',
+        "pi" => 'π',
+        "rho" => 'ρ',
+        "sigma" => 'σ',
+        "tau" => 'τ',
+        "upsilon" => 'υ',
+        "phi" => 'φ',
+        "chi" => 'χ',
+        "psi" => 'ψ',
+        "omega" => 'ω',
+        "Gamma" => 'Γ',
+        "Delta" => 'Δ',
+        "Theta" => 'Θ',
+        "Lambda" => 'Λ',
+        "Xi" => 'Ξ',
+        "Pi" => 'Π',
+        "Sigma" => 'Σ',
+        "Upsilon" => 'Υ',
+        "Phi" => 'Φ',
+        "Psi" => 'Ψ',
+        "Omega" => 'Ω',
+        "ell" => 'ℓ',
+        "planck" => 'ℏ',
+        "aleph" => 'ℵ',
+        "nabla" => '∇',
+        "diff" => '∂',
+        "oo" => '∞',
+        _ => return None,
+    })
+}
+
+/// The inverse of [`ident_char`]'s Greek and letterlike table: the canonical
+/// mitex identifier a character was named by.
+///
+/// [`crate::emphasis::strip_bold`] needs this because bolding writes the
+/// literal character rather than the name — `bold(ε)`, not
+/// `bold(epsilon)` — to work around a Typst span-tracking gap (see
+/// [`crate::emphasis::bolden`]'s doc comment). Undoing that has to restore
+/// the name, or a compiled term's key would read `ε` while a lesson's
+/// `.explain(r"\varepsilon", ...)` entry — never bolded, so never rewritten
+/// — still keys as `epsilon`, and the two would silently stop matching.
+/// `\epsilon` and `\varepsilon` both draw glyphs [`normalize`] folds onto
+/// `ε`, but only one spelling can be canonical here: the one this crate's
+/// lessons write, `\varepsilon`.
+pub(crate) fn char_ident(ch: char) -> Option<&'static str> {
+    Some(match ch {
+        'α' => "alpha",
+        'β' => "beta",
+        'γ' => "gamma",
+        'δ' => "delta",
+        'ε' => "epsilon",
+        'ζ' => "zeta",
+        'η' => "eta",
+        'θ' => "theta",
+        'ι' => "iota",
+        'κ' => "kappa",
+        'λ' => "lambda",
+        'μ' => "mu",
+        'ν' => "nu",
+        'ξ' => "xi",
+        'π' => "pi",
+        'ρ' => "rho",
+        'σ' => "sigma",
+        'τ' => "tau",
+        'υ' => "upsilon",
+        'φ' => "phi",
+        'χ' => "chi",
+        'ψ' => "psi",
+        'ω' => "omega",
+        'Γ' => "Gamma",
+        'Δ' => "Delta",
+        'Θ' => "Theta",
+        'Λ' => "Lambda",
+        'Ξ' => "Xi",
+        'Π' => "Pi",
+        'Σ' => "Sigma",
+        'Υ' => "Upsilon",
+        'Φ' => "Phi",
+        'Ψ' => "Psi",
+        'Ω' => "Omega",
+        'ℓ' => "ell",
+        'ℏ' => "planck",
+        'ℵ' => "aleph",
+        '∇' => "nabla",
+        '∂' => "diff",
+        '∞' => "oo",
+        _ => return None,
+    })
+}
+
 /// Look up the curated entry for a character, once normalised.
 ///
 /// This is the crate's built-in, page-agnostic dictionary: the final
@@ -373,6 +495,39 @@ mod tests {
     #[test]
     fn uncurated_characters_have_no_entry() {
         assert!(char_entry('\u{2A0C}').is_none());
+    }
+
+    /// Every Greek command this lesson engine is likely to meet, compiled for
+    /// real and checked against what `ident_char` says the same mitex
+    /// identifier means — so the table above cannot silently drift from what
+    /// mitex actually emits.
+    #[test]
+    fn ident_char_matches_what_normalize_folds_the_compiled_glyph_to() {
+        for latex in [
+            r"\alpha", r"\beta", r"\gamma", r"\delta", r"\epsilon", r"\varepsilon", r"\zeta",
+            r"\eta", r"\theta", r"\vartheta", r"\iota", r"\kappa", r"\lambda", r"\mu", r"\nu",
+            r"\xi", r"\pi", r"\rho", r"\sigma", r"\tau", r"\upsilon", r"\phi", r"\varphi",
+            r"\chi", r"\psi", r"\omega", r"\Gamma", r"\Delta", r"\Theta", r"\Lambda", r"\Xi",
+            r"\Pi", r"\Sigma", r"\Upsilon", r"\Phi", r"\Psi", r"\Omega",
+        ] {
+            let typst = crate::formula::to_typst_math(latex).expect("mitex");
+            let rendered = crate::formula::compile(latex, false, &crate::glossary::Glossary::default())
+                .expect("compile");
+            let glyphs: Vec<&str> = rendered
+                .terms
+                .iter()
+                .flat_map(|term| &term.glyphs)
+                .map(|glyph| glyph.text.as_str())
+                .collect();
+            let [glyph] = glyphs[..] else {
+                panic!("{latex} drew {glyphs:?}, expected exactly one glyph");
+            };
+            let drawn = glyph.chars().next().expect("a character");
+
+            let resolved =
+                ident_char(&typst).unwrap_or_else(|| panic!("no mapping for {typst:?} ({latex})"));
+            assert_eq!(normalize(drawn), resolved, "{latex} compiled to typst {typst:?}, drew {drawn:?}");
+        }
     }
 
     /// The tooltip text is drawn by egui, which does no Unicode shaping and

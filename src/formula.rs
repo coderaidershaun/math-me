@@ -15,6 +15,8 @@ use typst::World as _;
 use typst::layout::{Abs, Frame, FrameItem, Point, Transform};
 use typst::text::{BottomEdge, BottomEdgeMetric, TextEdgeBounds, TopEdge, TopEdgeMetric};
 
+use crate::emphasis;
+use crate::glossary::Glossary;
 use crate::symbols;
 use crate::terms::{self, RawGlyph, Term};
 
@@ -34,8 +36,6 @@ const DISPLAY_PT: f32 = 17.0;
 const INK: &str = "#E8E6E3";
 /// Ink colour of a hovered character. `recolour` swaps one for the other.
 const INK_HOVER: &str = "#4ADE80";
-/// Sky blue, for characters a lesson declares vectors or matrices.
-const INK_ACCENT: &str = "#87CEEB";
 
 /// A compiled formula: the picture, and everything needed to interact with it.
 pub(crate) struct RenderedMath {
@@ -44,8 +44,6 @@ pub(crate) struct RenderedMath {
     /// normal one, clipped to a term, turns that term green without a second
     /// Typst compile or any pixel-level trickery.
     pub svg_hover: Arc<[u8]>,
-    /// The same drawing in sky blue, for vector/matrix glyphs.
-    pub svg_accent: Arc<[u8]>,
     pub page_size_pt: egui::Vec2,
     pub terms: Vec<Term>,
     pub latex: String,
@@ -79,6 +77,14 @@ fn recolour(svg: &str, ink: &str) -> (String, usize) {
 /// way on screen and another way on paper.
 pub(crate) fn to_typst_math(latex: &str) -> Result<String, String> {
     Ok(mitex::convert_math(latex, None)?.trim().to_owned())
+}
+
+/// [`to_typst_math`], with every declared vector or matrix letter wrapped in
+/// `bold(...)`. What both [`compile`] and [`crate::pdf::typst_source`]
+/// actually feed to Typst, so a lesson's bold reaches the screen and the
+/// page from the one conversion.
+pub(crate) fn to_typst_math_bold(latex: &str, glossary: &Glossary) -> Result<String, String> {
+    to_typst_math(latex).map(|body| emphasis::bolden(&body, glossary))
 }
 
 /// The one-equation Typst document a formula is compiled as.
@@ -124,8 +130,8 @@ fn engine(src: String) -> typst_as_lib::TypstEngine<typst_as_lib::TypstTemplateM
 /// straight back into text a person reads — an `Error::MathCompile`, an
 /// `AuditFinding::MathError`, or the red `[math error: …]` label. Wrapping it
 /// in a typed error here would only mean unwrapping it again at all three.
-pub(crate) fn compile(latex: &str, display: bool) -> Result<RenderedMath, String> {
-    let body = to_typst_math(latex)?;
+pub(crate) fn compile(latex: &str, display: bool, glossary: &Glossary) -> Result<RenderedMath, String> {
+    let body = to_typst_math_bold(latex, glossary)?;
     let engine = engine(document(&body, display));
 
     // Driving the compile through the world by hand, rather than through
@@ -159,12 +165,10 @@ pub(crate) fn compile(latex: &str, display: bool) -> Result<RenderedMath, String
         recoloured > 0,
         "no ink to recolour in the emitted SVG — hover would not turn green"
     );
-    let (accent, _) = recolour(&svg, INK_ACCENT);
 
     Ok(RenderedMath {
         svg: Arc::from(svg.into_bytes()),
         svg_hover: Arc::from(hover.into_bytes()),
-        svg_accent: Arc::from(accent.into_bytes()),
         page_size_pt,
         terms,
         latex: latex.to_owned(),
@@ -288,7 +292,7 @@ mod tests {
     /// breaks silently if `typst_svg` ever writes the fill differently.
     #[test]
     fn recolour_finds_the_ink() {
-        let rendered = compile(r"\sigma_t^2 = \omega", true).unwrap();
+        let rendered = compile(r"\sigma_t^2 = \omega", true, &Glossary::default()).unwrap();
         let svg = std::str::from_utf8(&rendered.svg).unwrap();
         let (hover, recoloured) = recolour(svg, INK_HOVER);
 
@@ -299,15 +303,42 @@ mod tests {
         // A fraction bar is a stroked path rather than a glyph. A whole
         // fraction is one term now, so a bar left off-white would run visibly
         // through the middle of the highlight.
-        let fraction = compile(r"\frac{\omega}{2}", true).unwrap();
+        let fraction = compile(r"\frac{\omega}{2}", true, &Glossary::default()).unwrap();
         let svg = std::str::from_utf8(&fraction.svg).unwrap();
         let stroke = format!("stroke=\"{}\"", INK.to_ascii_lowercase());
         assert!(svg.contains(&stroke), "the bar is drawn some other way now");
         assert!(!recolour(svg, INK_HOVER).0.contains(&INK.to_ascii_lowercase()));
     }
 
+    /// A declared vector or matrix letter reaches the page as an actual bold
+    /// glyph — Typst sets a bolded math identifier in one of the
+    /// Mathematical Alphanumeric Symbols blocks — and `symbols::normalize`
+    /// must still fold it back to the plain letter it was declared with, or
+    /// role lookups and tooltips would break the moment bolding kicked in.
+    #[test]
+    fn a_declared_letter_is_drawn_bold_and_normalize_folds_it_back() {
+        let mut glossary = Glossary::default();
+        glossary.insert_role('x', crate::glossary::Role::Vector);
+
+        let rendered = compile(r"x = a", true, &glossary).expect("compile");
+        let glyph = rendered
+            .terms
+            .iter()
+            .flat_map(|term| &term.glyphs)
+            .find(|glyph| symbols::normalize_str(&glyph.text) == "x")
+            .expect("the declared x drew a glyph");
+        let ch = glyph.text.chars().next().expect("a character");
+
+        assert!(
+            ('\u{1D400}'..='\u{1D7FF}').contains(&ch),
+            "declared x drew {ch:?} (U+{:04X}), not a Mathematical Alphanumeric codepoint",
+            ch as u32
+        );
+        assert_eq!(symbols::normalize(ch), 'x');
+    }
+
     fn keys(latex: &str) -> Vec<String> {
-        compile(latex, true)
+        compile(latex, true, &Glossary::default())
             .expect("compile")
             .terms
             .iter()
@@ -423,7 +454,7 @@ mod tests {
             let mut laid_out = Vec::new();
             collect_glyphs(&doc.pages()[0].frame, Transform::identity(), &mut laid_out);
 
-            let rendered = compile(latex, display).expect("compile");
+            let rendered = compile(latex, display, &Glossary::default()).expect("compile");
             let grouped: usize = rendered.terms.iter().map(|term| term.glyphs.len()).sum();
             assert_eq!(grouped, laid_out.len(), "glyphs lost or doubled in {latex}");
         }
@@ -433,7 +464,7 @@ mod tests {
     /// it as a tofu box in the tooltip. No glyph text may carry invisibles.
     #[test]
     fn glyph_texts_contain_no_invisible_characters() {
-        let rendered = compile(r"z_t \sim \mathcal{N}(0,1)", true).expect("compile");
+        let rendered = compile(r"z_t \sim \mathcal{N}(0,1)", true, &Glossary::default()).expect("compile");
         let glyphs: Vec<_> = rendered.terms.iter().flat_map(|term| &term.glyphs).collect();
         assert!(glyphs.iter().any(|g| g.text == "𝒩"), "𝒩 present, selector gone");
         for glyph in glyphs {

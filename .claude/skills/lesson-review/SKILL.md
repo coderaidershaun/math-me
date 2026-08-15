@@ -1,6 +1,6 @@
 ---
 name: lesson-review
-description: Step 3 of the lesson pipeline — the final reviewer: experience lessons/lesson-{slug}.rs as a student would, then edit the binary directly wherever the content is lacking, holding the ~30 page budget and the build and audit gates, inventing nothing. Use when dispatched by lesson-builder, or when the user says "review the lesson", "polish the lesson", "final pass".
+description: Step 3 of the lesson pipeline — the final reviewer: experience lessons/lesson-{slug}.rs as a student would, then edit the binary directly wherever the content is lacking, holding the ~30 page budget and the build and audit gates, inventing nothing. Use when dispatched by lesson-builder or lesson-critic, or when the user says "review the lesson", "polish the lesson", "final pass".
 disable-model-invocation: false
 user-invocable: false
 ---

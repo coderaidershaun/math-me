@@ -1,6 +1,6 @@
 ---
 name: lesson-apply
-description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary and recommend physical-world and financial-time-series applications with toy-number worked examples, writing no files; skips cleanly on non-mathematical topics. Use when dispatched by lesson-builder, or when the user says "make it real", "where is this actually used", "connect it to finance", "applied math".
+description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary and recommend physical-world and financial-time-series applications with toy-number worked examples, writing no files; skips cleanly on non-mathematical topics. Use when dispatched by lesson-builder or lesson-critic, or when the user says "make it real", "where is this actually used", "connect it to finance", "applied math".
 disable-model-invocation: false
 user-invocable: false
 ---

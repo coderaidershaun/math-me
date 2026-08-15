@@ -69,8 +69,9 @@ impl Lesson {
     /// against the glossary, and parse every tunable plot curve, reporting
     /// anything a reader would notice: a formula that does not compile, a
     /// term nothing curated explains, a tooltip that would print a character
-    /// egui cannot draw, a curve that would not be drawn, or a slider that
-    /// would do nothing.
+    /// egui cannot draw, a curve that would not be drawn, a slider that
+    /// would do nothing, or a declared vector or matrix letter of the wrong
+    /// case.
     ///
     /// Infallible by design — a lesson always builds — so this is how
     /// problems surface. Agent-authored lessons should assert
@@ -78,8 +79,20 @@ impl Lesson {
     pub fn audit(&self) -> Vec<AuditFinding> {
         let mut findings = Vec::new();
 
+        for (ch, role) in self.glossary.roles() {
+            match role {
+                glossary::Role::Matrix if !ch.is_uppercase() => {
+                    findings.push(AuditFinding::MatrixNotCapital { character: ch });
+                }
+                glossary::Role::Vector if !ch.is_lowercase() => {
+                    findings.push(AuditFinding::VectorNotLowercase { character: ch });
+                }
+                glossary::Role::Matrix | glossary::Role::Vector => {}
+            }
+        }
+
         for (latex, display) in self.formulas() {
-            let rendered = match crate::formula::compile(latex, display) {
+            let rendered = match crate::formula::compile(latex, display, &self.glossary) {
                 Ok(rendered) => rendered,
                 Err(message) => {
                     findings.push(AuditFinding::MathError {
@@ -331,13 +344,16 @@ impl LessonBuilder {
     }
 
     /// Declare that `ch` names a vector: every occurrence in every formula is
-    /// set in sky blue.
+    /// set bold. By convention `ch` should be lower-case —
+    /// [`Lesson::audit`] flags a capital as [`AuditFinding::VectorNotLowercase`].
     pub fn vector(mut self, ch: char) -> Self {
         self.glossary.insert_role(ch, glossary::Role::Vector);
         self
     }
 
-    /// Declare that `ch` names a matrix; same sky blue as [`Self::vector`].
+    /// Declare that `ch` names a matrix; same bold as [`Self::vector`]. By
+    /// convention `ch` should be a capital — [`Lesson::audit`] flags a
+    /// lower-case letter as [`AuditFinding::MatrixNotCapital`].
     pub fn matrix(mut self, ch: char) -> Self {
         self.glossary.insert_role(ch, glossary::Role::Matrix);
         self
@@ -433,6 +449,12 @@ pub enum AuditFinding {
     /// the axis nor the label is drawn. [`crate::Plot::secondary`] is what
     /// moves a series onto it.
     UnusedSecondaryLabel { label: String },
+    /// [`LessonBuilder::matrix`] was declared with a lower-case letter,
+    /// against the field convention that matrices are capitals.
+    MatrixNotCapital { character: char },
+    /// [`LessonBuilder::vector`] was declared with an upper-case letter,
+    /// against the field convention that vectors are lower-case.
+    VectorNotLowercase { character: char },
 }
 
 #[cfg(test)]
@@ -478,4 +500,25 @@ mod tests {
         assert_eq!(plot.caption, "a line");
     }
 
+    #[test]
+    fn a_matrix_or_vector_of_the_wrong_case_is_flagged() {
+        let lesson = Lesson::builder("Title").vector('X').matrix('a').build();
+
+        let findings = lesson.audit();
+        assert!(
+            findings.contains(&AuditFinding::VectorNotLowercase { character: 'X' }),
+            "{findings:?}"
+        );
+        assert!(
+            findings.contains(&AuditFinding::MatrixNotCapital { character: 'a' }),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn a_correctly_cased_matrix_and_vector_pass_the_audit_clean() {
+        let lesson = Lesson::builder("Title").vector('x').matrix('A').build();
+
+        assert!(lesson.audit().is_empty(), "{:?}", lesson.audit());
+    }
 }

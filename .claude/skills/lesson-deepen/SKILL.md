@@ -1,6 +1,6 @@
 ---
 name: lesson-deepen
-description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary at lessons/lesson-{slug}.rs and return why-why-why / how-how-how recommendations that drive each core idea to named bedrock (definition, axiom, convention, empirical fact), writing no files. Use when dispatched by lesson-builder, or when the user says "go deeper", "why why why", "that explanation is too shallow", "get to the bottom of X".
+description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary at lessons/lesson-{slug}.rs and return why-why-why / how-how-how recommendations that drive each core idea to named bedrock (definition, axiom, convention, empirical fact), writing no files. Use when dispatched by lesson-builder or lesson-critic, or when the user says "go deeper", "why why why", "that explanation is too shallow", "get to the bottom of X".
 disable-model-invocation: false
 user-invocable: false
 ---

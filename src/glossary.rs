@@ -46,7 +46,8 @@ struct Entry {
 }
 
 /// What kind of linear-algebra object a character names; both kinds draw the
-/// same sky blue accent.
+/// same bold weight — the case of the letter is what tells them apart, which
+/// is why [`crate::lesson::Lesson::audit`] enforces it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub(crate) enum Role {
     Vector,
@@ -87,6 +88,13 @@ impl Glossary {
 
     pub(crate) fn role(&self, ch: char) -> Option<Role> {
         self.roles.get(&symbols::normalize(ch)).copied()
+    }
+
+    /// Every character a role was declared for, and which one —
+    /// [`crate::lesson::Lesson::audit`]'s source for the capitalisation
+    /// rule, since `char` is public where [`Role`] is not.
+    pub(crate) fn roles(&self) -> impl Iterator<Item = (char, Role)> + '_ {
+        self.roles.iter().map(|(&ch, &role)| (ch, role))
     }
 
     /// Explain a term: the atoms it is made of, and the key

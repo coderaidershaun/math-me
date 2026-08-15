@@ -1,6 +1,6 @@
 ---
 name: lesson-graph
-description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary and recommend at most two Plot specs (params, ranges, defaults, and the named noticing the student gets while dragging), or none, writing no files. Use when dispatched by lesson-builder, or when the user says "what graphs would help", "sliders", "interactive visualisation", "should this lesson have a plot".
+description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary and recommend at most two Plot specs (params, ranges, defaults, and the named noticing the student gets while dragging), or none, writing no files. Use when dispatched by lesson-builder or lesson-critic, or when the user says "what graphs would help", "sliders", "interactive visualisation", "should this lesson have a plot".
 disable-model-invocation: false
 user-invocable: false
 ---

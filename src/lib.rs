@@ -21,6 +21,7 @@
 //! assert!(lesson.audit().is_empty());
 //! ```
 
+mod emphasis;
 mod error;
 mod expr;
 mod figure;

@@ -27,6 +27,10 @@ path = "lessons/lesson-algebra-to-linear.rs"
 name = "lesson-limits"
 path = "lessons/lesson-limits.rs"
 
+[[bin]]
+name = "lesson-trig"
+path = "lessons/lesson-trig.rs"
+
 [dependencies]
 eframe = "0.35"
 egui_extras = { version = "0.35", features = ["svg"] }

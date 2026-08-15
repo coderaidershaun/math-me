@@ -1,6 +1,6 @@
 ---
 name: lesson-illustrate
-description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary and recommend at most four SVG figures with complete, computed-honest source ready for Figure::new, writing no files. Use when dispatched by lesson-builder, or when the user says "what pictures would help", "illustrate the lesson", "add a diagram".
+description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary and recommend at most four SVG figures with complete, computed-honest source ready for Figure::new, writing no files. Use when dispatched by lesson-builder or lesson-critic, or when the user says "what pictures would help", "illustrate the lesson", "add a diagram".
 disable-model-invocation: false
 user-invocable: false
 ---

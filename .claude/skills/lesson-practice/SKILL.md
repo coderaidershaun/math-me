@@ -1,6 +1,6 @@
 ---
 name: lesson-practice
-description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary and recommend 5–8 retrieval-practice questions (worked, faded, independent, diagnostic) derived from the lesson's own content with verified numbers and the attempt gap preserved, writing no files. Use when dispatched by lesson-builder, or when the user says "add practice", "quiz me on it", "practice questions".
+description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary and recommend 5–8 retrieval-practice questions (worked, faded, independent, diagnostic) derived from the lesson's own content with verified numbers and the attempt gap preserved, writing no files. Use when dispatched by lesson-builder or lesson-critic, or when the user says "add practice", "quiz me on it", "practice questions".
 disable-model-invocation: false
 user-invocable: false
 ---

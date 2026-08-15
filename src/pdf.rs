@@ -14,6 +14,7 @@ use typst_as_lib::TypstEngine;
 use typst_as_lib::typst_kit_options::TypstKitFontOptions;
 
 use crate::error::{Error, Result};
+use crate::glossary::Glossary;
 use crate::lesson::{Block, Figure, Inline, Lesson};
 use crate::plot::{Plot, ResolvedPlot, ResolvedSeries, SecondaryAxis, Shape, Ticks, Y_TICKS, format_tick};
 
@@ -116,7 +117,7 @@ fn typst_source(lesson: &Lesson) -> Result<(String, Vec<EmbeddedFile>)> {
                     match inline {
                         Inline::Text(text) => src.push_str(&escape(text)),
                         Inline::Math(latex) => {
-                            let math = to_typst_math(latex)?;
+                            let math = to_typst_math(latex, lesson.glossary())?;
                             let _ = write!(src, "${math}$");
                         }
                     }
@@ -124,7 +125,7 @@ fn typst_source(lesson: &Lesson) -> Result<(String, Vec<EmbeddedFile>)> {
                 src.push_str("\n\n");
             }
             Block::Display(latex) => {
-                let math = to_typst_math(latex)?;
+                let math = to_typst_math(latex, lesson.glossary())?;
                 let _ = writeln!(src, "$ {math} $\n");
             }
             Block::Rule => {
@@ -164,10 +165,12 @@ fn figure_svg(figure: &Figure) -> String {
     figure.print_svg.clone().unwrap_or_else(|| figure.svg.clone())
 }
 
-/// LaTeX to Typst maths, mapping a conversion failure to the crate's error
-/// type with the offending formula attached.
-fn to_typst_math(latex: &str) -> Result<String> {
-    crate::formula::to_typst_math(latex).map_err(|message| Error::MathCompile { latex: latex.to_owned(), message })
+/// LaTeX to bold-aware Typst maths, mapping a conversion failure to the
+/// crate's error type with the offending formula attached — the PDF's half
+/// of the one conversion [`crate::formula::compile`] uses for the screen.
+fn to_typst_math(latex: &str, glossary: &Glossary) -> Result<String> {
+    crate::formula::to_typst_math_bold(latex, glossary)
+        .map_err(|message| Error::MathCompile { latex: latex.to_owned(), message })
 }
 
 /// The page a plot is drawn on, in Typst points, and the data range it maps

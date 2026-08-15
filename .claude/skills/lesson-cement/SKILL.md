@@ -1,6 +1,6 @@
 ---
 name: lesson-cement
-description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary and recommend the few stories, analogies (each naming where it breaks), sensory invitations and surprises that make the core ideas land, writing no files. Use when dispatched by lesson-builder, or when the user says "make it stick", "make it land", "bring it to life", "make it memorable".
+description: Recommendation lens for step 2 of the lesson pipeline — read the lesson binary and recommend the few stories, analogies (each naming where it breaks), sensory invitations and surprises that make the core ideas land, writing no files. Use when dispatched by lesson-builder or lesson-critic, or when the user says "make it stick", "make it land", "bring it to life", "make it memorable".
 disable-model-invocation: false
 user-invocable: false
 ---

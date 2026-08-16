@@ -1,5 +1,22 @@
-//! Exponents — built from `.scratch/lesson-exponents.md`'s composed script
-//! (the `# Lesson: Exponents` section, pass-2 refined).
+//! Exponents from zero to hero, built on five ideas: the exponent as a
+//! headcount of factors, the count starting at 1 so the ladder runs both ways,
+//! each new kind of exponent being forced rather than chosen, equal steps in
+//! the exponent meaning equal factors on the value, and a percentage change
+//! being a factor rather than an addend — which is why money is an exponent
+//! problem. Logarithms are taught only as far as the spine needs them: an
+//! exponent read backwards, doubling time, log returns and log-scaled charts.
+//! Then seven layers outward, from e to complex exponents to hyperoperations.
+//! No calculus is used.
+//!
+//! Prerequisites:
+//! - Arithmetic with whole numbers, negatives, fractions and decimals.
+//! - What "per cent" means.
+//! - Reading a letter as a stand-in for a number.
+//! - No calculus, and no exponent rules assumed — all of them are built here.
+//!
+//! Cross-links: lesson-limits (the natural-base debt, settled in practice),
+//! lesson-trig (Euler's formula and the unit circle) and
+//! lesson-algebra-to-linear (the same EWMA recursion as a matrix expression).
 
 use math_me::prelude::*;
 
@@ -15,6 +32,8 @@ fn main() -> math_me::Result<()> {
     b = b.para(|p| p
         .text("Somewhere between 2000 and 1700 BC, a clerk in Mesopotamia pressed a question into wet clay: how long does money take to double at 20% a year, with the interest joining the principal every year? He was being asked to solve"));
     b = b.display(r"1.2^{\,n} = 2");
+    b = b.explain(r"1.2^{\,n} = 2", "Why the base is 1.2",
+        "20% a year is not +20 added on: it is x1.2 applied. A percentage change is a factor, not an amount — so one year multiplies the debt by 1.2, and n years multiply it by 1.2, n times over. That one translation is what makes a loan an exponent problem, and idea 1 hands it to you properly.");
     b = b.para(|p| p
         .text("four thousand years before anyone would write it that way. He did the only sensible thing available to him: he worked out the two years that bracket the answer — ")
         .math(r"1.2^3 = 1.728")
@@ -65,7 +84,9 @@ fn main() -> math_me::Result<()> {
         .text(" sit in the product:"));
     b = b.display(r"b^n = b \times b \times \cdots \times b \quad (n \ \mathrm{factors})");
     b = b.explain(r"b^n = b \times b \times \cdots \times b \quad (n \ \mathrm{factors})", "The headcount definition",
-        "b is the base — the thing being tallied. n is the exponent — the tally itself. b^n is n copies of b multiplied together, not b multiplied by n.");
+        "b is the base — the thing being tallied. n is the exponent — the tally itself. b^n is n copies of b multiplied together, not b multiplied by n. Note the debt this incurs: for now n is a whole number, because that is all a headcount can mean. You cannot count 3.8 copies of anything. Ideas 2 and 3 earn the rest of the number line by refusing to let the counting laws break, and the scribe's 3.8 years is the debt they settle.");
+    b = b.rule();
+    b = b.note("Before reading on: write down a number for 2^3.");
     b = b.para(|p| p
         .text("So ")
         .math(r"2^3")
@@ -139,18 +160,42 @@ fn main() -> math_me::Result<()> {
         .math(r"(b/c)^n = b^n/c^n")
         .text(" for ")
         .math(r"c\neq0")
-        .text(". Five laws, one question asked five times. Notice the pair that gets swapped, now that the difference is visible rather than memorised: in ")
-        .math(r"b^m\cdot b^n")
-        .text(" you lay factors end to end, so the tally adds; in ")
-        .math(r"\left(b^m\right)^n")
-        .text(" you stack groups of factors, so the tally multiplies."));
+        .text(". Five laws, one question asked five times."));
+
+    b = b.rule();
+    b = b.note("Before reading on: write down the missing exponent in each — x^2 . x^3 = x^? and (x^2)^3 = x^?");
+    b = b.para(|p| p
+        .math(r"x^2\cdot x^3=x^5")
+        .text(", and ")
+        .math(r"\left(x^2\right)^3=x^6")
+        .text(". The tempting wrong answers are ")
+        .math(r"x^6")
+        .text(" and ")
+        .math(r"x^5")
+        .text(" — the right two numbers, each in the wrong place, because both expressions look like the same instruction, \"combine the exponents\", once you have decided which arithmetic that means you do it to both. Stop recalling and start counting: ")
+        .math(r"x^2\cdot x^3")
+        .text(" sets two ")
+        .math(r"x")
+        .text("s beside three ")
+        .math(r"x")
+        .text("s, five in the product, counts add. ")
+        .math(r"\left(x^2\right)^3")
+        .text(" takes three groups of two ")
+        .math(r"x")
+        .text("s, six in total, counts multiply. Check on numbers: at ")
+        .math(r"x=2")
+        .text(", ")
+        .math(r"4\times8=32=2^5")
+        .text(", while ")
+        .math(r"4^3=64=2^6")
+        .text("."));
 
     b = b.para(|p| p
         .text("Analogy — the photocopier with two buttons. Set a copier to 90% reduction and feed each output back in. The dial reads 90 every time — that is the base. The number of passes is the exponent. Three passes and then four more is seven passes: ")
         .math(r"0.9^3\cdot0.9^4=0.9^7")
         .text(". Now the trap: the machine also has a \"batch\" button running three passes at once. Press batch four times and you have twelve passes, not seven: ")
         .math(r"\left(0.9^3\right)^4=0.9^{12}")
-        .text(". Predict which sheet is smaller before you compute — seven passes gives 0.478; four batches of three gives 0.282. One more factor adds to the tally; one more group of factors multiplies it."));
+        .text(". You have just counted this: seven passes leaves 0.478 of the sheet, four batches of three leaves 0.282, about 40% smaller again. One more factor adds to the tally; one more group of factors multiplies it."));
     b = b.para(|p| p
         .text("Where the analogy breaks down: a real copier degrades the image as well as shrinking it, so copies accumulate noise. The exponent tracks only the scale factor and knows nothing about accumulating error."));
     b = b.figure(Figure::new(ILL8_SVG, "The photocopier's two buttons: one dial reading 90%, and the whole difference between adding passes and multiplying batches of them. Feeding sheets back one at a time is 0.9^3 * 0.9^4 = 0.9^7 = 0.478 — the passes add, 3+4=7. Pressing a \"batch of three\" button four times is (0.9^3)^4 = 0.9^12 = 0.282 — the groups multiply, 3x4=12. Because a copier's percentage scales each side, the areas fall as the square: 0.9^14 = 0.229 and 0.9^24 = 0.080."));
@@ -196,10 +241,11 @@ fn main() -> math_me::Result<()> {
         .text(", the cross terms — and it has a disguise: ")
         .math(r"(x^2+y^2)^{1/2} = x+y")
         .text(" is the same error wearing a root."));
+    b = b.figure(Figure::new(ILL2_SVG, "Where the cross terms live: the square of side 3+4=7 has area 49. The freshman's dream keeps only the two squares on the diagonal, 3^2=9 and 4^2=16, total 25, and throws away the two shaded rectangles at 3x4=12 each. The part prose cannot show is the size of what is thrown away: 2ab=24 is 49% of the square. 25+24=49."));
+    b = b.rule();
+    b = b.note("Before reading on: a close relative worth catching in yourself. Write down a value for y^4 + y^4.");
     b = b.para(|p| p
-        .text("A close relative worth catching in yourself: write down a value for ")
-        .math(r"y^4+y^4")
-        .text(" before reading on. If you wrote ")
+        .text("If you wrote ")
         .math(r"y^8")
         .text(", you tallied factors where the notation tallies terms — adding counts terms, ")
         .math(r"y^4+y^4=2y^4")
@@ -213,6 +259,8 @@ fn main() -> math_me::Result<()> {
         "The exact accounting of which terms met which when a bracket raised to the n is multiplied out. Read through this theorem, (1+r)^n is the anatomy of compound interest: nr is simple interest, C(n,2) r^2 is interest on interest, and so on.");
     b = b.para(|p| p
         .text("Fun fact: Pascal's triangle is printed on your interest. Put $100 at 10% for three years: the growth factor is 1.331. Read the digits — 1, 3, 3, 1 — the third row of Pascal's triangle: $100 of principal, $30 of plain interest, $3 of interest on interest, and 10 cents of interest on interest on interest. Row four, 1.1^4 = 1.4641, reads straight off 1, 4, 6, 4, 1 — but row five breaks the trick, because once a coefficient reaches 10 it no longer fits in a decimal place and the digits start carrying: 1.1^5 = 1.61051."));
+    b = b.explain(r"(1+x)^n \ge 1+nx", "Bernoulli's inequality — and the shape of everyone's mistake",
+        "Read financially, compounding is never worse than simple interest. Read as a picture, it says the curve (1+x)^n never dips below the straight line 1+nx leaving the same starting point — and that is the whole reason exponential-growth bias has a direction rather than being mere noise. Anyone extrapolating a straight line from early data lands below the truth and underestimates. The one way to err the other way is to interpolate BETWEEN two known points, where the chord runs above the curve instead: that is the scribe's ruler in the opening, and it is why he comes out five days early rather than five days late.");
     b = b.para(|p| p
         .text("Drop the positive tail instead of counting it and you have Bernoulli's inequality, ")
         .math(r"(1+x)^n \ge 1+nx")
@@ -242,9 +290,9 @@ fn main() -> math_me::Result<()> {
         .math(r"2\cdot3^2=18")
         .text(", not 36."));
 
-    b = b.note("Going deeper (optional): the four laws each spend a specific axiom of multiplication — associativity for the product rule, distributivity-in-the-exponent for power-of-a-power, commutativity for power-of-a-product — which is exactly why the last one dies on a sum and why (a+b)^n cannot be resorted. Chase \"why is any of this true\" far enough and you reach one of a small number of floors: the field axioms of the real numbers, Peano's induction axiom, or (for the right-associative reading of a tower) a naming convention with real dissenters — Excel and Python disagree about -3^2 and about 2^3^2, and neither program is computing anything false. Skip to \"The idea at work\" with nothing lost.");
+    b = b.note("Going deeper (optional): the four laws each spend a specific axiom of multiplication — associativity for the product rule, distributivity-in-the-exponent for power-of-a-power, commutativity for power-of-a-product — which is exactly why the last one dies on a sum and why (a+b)^n cannot be resorted. Chase \"why is any of this true\" far enough and you reach one of a small number of floors: the field axioms of the real numbers, Peano's induction axiom, or (for the right-associative reading of a tower) a naming convention with real dissenters — Excel and Python disagree about -3^2 and about 2^3^2, and neither program is computing anything false. Skip to \"Headcounts at work\" with nothing lost.");
 
-    b = b.heading("The idea at work");
+    b = b.heading("Headcounts at work — units, Galileo, and a walk that does not add");
     b = b.para(|p| p
         .text("In the physical world, the headcount sits in plain sight in the units. An area in ")
         .math(r"\mathrm{m}^2")
@@ -263,7 +311,7 @@ fn main() -> math_me::Result<()> {
         .text(". So the stress in the legs rises by ")
         .math(r"27/9=3")
         .text(". That one division is the square–cube law, described by Galileo in Two New Sciences (1638), and it is why no land animal has ever been shaped like a scaled-up mouse."));
-    b = b.figure(Figure::new(ILL1_SVG, "Galileo's two cubes, drawn to scale: doubling every length turns one unit cube into eight — each face of the big cube holds 2^2 = 4 unit squares, its body holds 2^3 = 8 unit cubes. Surface goes 6 -> 24 cm^2 and volume 1 -> 8 cm^3, so the surface-to-volume ratio falls from 6 to 3 per cm, and the stress in the supports rises by 2^3/2^2 = 2. One scale factor, two different exponents."));
+    b = b.figure(Figure::new(ILL1_SVG, "Galileo's two cubes, drawn to scale: doubling every length turns one unit cube into eight — each face of the big cube holds 2^2 = 4 unit squares, its body holds 2^3 = 8 unit cubes. Surface goes 6 -> 24 cm^2 and volume 1 -> 8 cm^3, so the surface-to-volume ratio falls from 6 to 3 per cm, and the stress in the supports rises by 2^3/2^2 = 2. One scale factor, two different exponents. The prose scales the bridge by 3 and the picture scales the cube by 2 on purpose -- eight cubes can be counted on a page and twenty-seven cannot. The law is the same either way: stress rises by k^3/k^2 = k."));
     b = b.para(|p| p
         .text("Non-distribution has a two-second physical demonstration: walk 3 m east, then 4 m north."));
     b = b.rule();
@@ -274,7 +322,6 @@ fn main() -> math_me::Result<()> {
         .text(". The tempting wrong answer is 7 for both, and its algebraic twin is ")
         .math(r"\left(a^2+b^2\right)^{1/2}=a+b")
         .text(" — the freshman's dream wearing a root. The missing 2 m is exactly the cross terms the freshman's dream throws away: you cannot walk in two directions at once and have the distances add."));
-    b = b.figure(Figure::new(ILL2_SVG, "Where the cross terms live: the square of side 3+4=7 has area 7^2=49. The freshman's dream (a+b)^2=a^2+b^2 keeps only the two squares on the diagonal, 3^2=9 and 4^2=16, total 25, and throws away the two shaded rectangles, 3x4=12 each. The discarded 2ab=24 is almost half the picture: 25+24=49."));
 
     b = b.para(|p| p
         .text("In a financial time series, the headcount is the number of periods elapsed. That is the whole translation — the exponent laws are not applied to finance, they are the period bookkeeping."));
@@ -315,34 +362,6 @@ fn main() -> math_me::Result<()> {
         .math(r"0.95^{10}=0.5987")
         .text(": sixty percent of the excess is still there after two full trading weeks."));
 
-    b = b.rule();
-    b = b.note("Before reading on: write down a number for each square — x^2 . x^3 = x^? and (x^2)^3 = x^?");
-    b = b.para(|p| p
-        .text("[q-1] ")
-        .math(r"x^2\cdot x^3=x^5")
-        .text(", and ")
-        .math(r"\left(x^2\right)^3=x^6")
-        .text(". The tempting wrong answers are ")
-        .math(r"x^6")
-        .text(" and ")
-        .math(r"x^5")
-        .text(" — the right two numbers, each in the wrong place, because both expressions look like the same instruction, \"combine the exponents\", once you have decided which arithmetic that means you do it to both. Stop recalling and start counting: ")
-        .math(r"x^2\cdot x^3")
-        .text(" sets two ")
-        .math(r"x")
-        .text("s beside three ")
-        .math(r"x")
-        .text("s, five in the product, counts add. ")
-        .math(r"\left(x^2\right)^3")
-        .text(" takes three groups of two ")
-        .math(r"x")
-        .text("s, six in total, counts multiply. Check on numbers: at ")
-        .math(r"x=2")
-        .text(", ")
-        .math(r"4\times8=32=2^5")
-        .text(", while ")
-        .math(r"4^3=64=2^6")
-        .text("."));
 
     // -------------------------------------------------------------
     // Idea 2
@@ -358,10 +377,14 @@ fn main() -> math_me::Result<()> {
         .math(r"b")
         .text("; stepping it down divides by ")
         .math(r"b")
-        .text("; and nothing about that stops at zero. Perform no multiplications and you are left with the 1 you started from:"));
+        .text("; and nothing about that stops at zero."));
+    b = b.rule();
+    b = b.note("Before reading on: step the ladder one rung below x^1 = x. Which are you pulled towards, x^0 = 0 or x^0 = x?");
+    b = b.para(|p| p
+        .text("Perform no multiplications and you are left with the 1 you started from:"));
     b = b.display(r"b^0 = 1 \qquad (b \neq 0)");
     b = b.explain(r"b^0 = 1 \qquad (b \neq 0)", "b to the zero",
-        "A base case, not a convention bolted on afterwards: perform no multiplications and you are left holding the 1 you started from. This is the empty-product convention — a product of no factors is 1, exactly as a sum of no terms is 0.");
+        "A base case, not a convention bolted on afterwards: perform no multiplications and you are left holding the 1 you started from. This is the empty-product convention — a product of no factors is 1, exactly as a sum of no terms is 0. Three arguments give this value and they do not all need the same caveat, which is worth noticing: the empty product and the product rule work for every b, including 0. Only the ladder argument divides, so only the ladder argument needs b non-zero — which is exactly why 0^0 is a live question rather than a closed one, settled later as 1 in algebra and as an indeterminate FORM in analysis. Those are statements about different things.");
     b = b.para(|p| p
         .text("Three independent reasons converge on this, which is what makes it feel inevitable rather than decreed: the empty product (no multiplications leaves the starting 1); forced by the product rule (")
         .math(r"b^n\cdot b^0=b^{n+0}=b^n")
@@ -374,10 +397,8 @@ fn main() -> math_me::Result<()> {
         .text(" is ")
         .math(r"b/b=1")
         .text(")."));
-    b = b.rule();
-    b = b.note("Before reading on: which are you pulled towards, x^0 = 0 or x^0 = x?");
     b = b.para(|p| p
-        .text("Both are wrong, and each fails for a different reason. ")
+        .text("Two temptations pull against that, and each fails for its own reason. ")
         .math(r"x^0=0")
         .text(" imports addition's do-nothing element into multiplication: ")
         .math(r"0+x=x")
@@ -439,7 +460,30 @@ fn main() -> math_me::Result<()> {
         .text(" leaves the building."));
     b = b.para(|p| p
         .text("Where the analogy breaks down: lift floors are equally spaced in metres, while exponent rungs are equally spaced multiplicatively — floor -1 is half the value, floor -2 is half of that, so the physical drops shrink while the floor numbers do not."));
-    b = b.figure(Figure::new(ILL3_SVG, "The ladder with no seam: powers of 2 drawn to scale at 32 px per unit. The rungs 3, 2, 1, 0, -1, -2 are equally spaced, while the bars are 8, 4, 2, 1, 1/2, 1/4 -- each exactly half the one above. Nothing happens at the highlighted 2^0=1 rung: the halving across 2^1 -> 2^0 -> 2^-1 is the same halving as everywhere else."));
+    b = b.figure(Figure::new(ILL3_SVG, "The ladder with no seam: powers of 2 drawn to scale at 32 px per unit. The rungs 3, 2, 1, 0, -1, -2 are equally spaced, while the bars are 8, 4, 2, 1, 1/2, 1/4 -- each exactly half the one above. Nothing happens at the highlighted 2^0=1 rung: the halving across 2^1 -> 2^0 -> 2^-1 is the same halving as everywhere else. Now read the same picture the other way. Left to right it answers \"name a rung, what is it worth\" -- that is a power; right to left it answers \"name a value, which rung is it on\" -- 8 sits on rung 3, 1/4 sits on rung -2 -- and that question has a name."));
+    b = b.para(|p| p
+        .text("That backwards reading is worth naming now, because the rest of the lesson leans on it. Given the exponent, what is the value? — that is everything so far. What exponent produced this value? — that is a logarithm, and it is not a new subject but this one read right to left:"));
+    b = b.para(|p| p
+        .math(r"\log_b(x)")
+        .text(" is the exponent that ")
+        .math(r"b")
+        .text(" must be raised to, in order to give ")
+        .math(r"x")
+        .text(". So ")
+        .math(r"\log_2(8)=3")
+        .text(", and ")
+        .math(r"\log_2(1/4)=-2")
+        .text(" — you have just read both off the ladder, and neither needed anything you did not already have."));
+    b = b.explain(r"\log_2(8)", "Which rung is 8 on?",
+        "Read off the ladder rather than computed: 8 is the top bar, three rungs above the 1. The answer is 3 because 2^3 = 8 -- the same fact as the power, asked from the other end.");
+    b = b.explain(r"\log_2(1/4)", "Which rung is a quarter on?",
+        "Two rungs BELOW the 1, so the answer is negative: -2, because 2^-2 = 1/4. Nothing special happens crossing zero -- the logarithm of a number smaller than 1 is negative for the same reason the ladder keeps going down.");
+    b = b.explain(r"\log_b(x)", "A logarithm",
+        "Not a new subject: the exponent read backwards. b^n = x and log_b(x) = n say the same thing from opposite ends -- the power question hands you the value given the rung, the logarithm hands you the rung given the value. The b written below is the base you are counting factors of, and it must be the same top and bottom for any of it to mean anything.");
+    b = b.para(|p| p
+        .text("\"ln\" means the logarithm to base ")
+        .math(r"e")
+        .text(" (met properly at layer 1); any base works provided you use the same one top and bottom. That one sentence is the whole of what this lesson needs — idea 4 spends it on doubling times and log returns."));
     b = b.para(|p| p
         .text("Fun fact — the mistake you can make with your mouth. Say ")
         .math(r"-9^{3/2}")
@@ -452,7 +496,7 @@ fn main() -> math_me::Result<()> {
         .text(", 10 of 18 got it wrong, but only 2 produced a negative answer — the famous \"the minus is the answer's sign\" mistake is the rare one; the common failure is knowing something must be flipped and not knowing what."));
     b = b.note("Going deeper (optional): the recursive definition b^0=1, b^(n+1)=b^n . b is what a mathematician or a computer actually uses -- it is the savings-account recurrence B_0=P, B_(n+1)=B_n(1+r), and every pow() implementation ever written. The chain of why bottoms out at the field axioms of the real numbers (there exists a multiplicative identity 1, and it is unique by a one-line proof) and, one level further, at Peano's induction axiom -- the same floor idea 1's laws bottom out at. The measured fact worth carrying: this confusion about what a negative exponent means survives four college courses, which is an empirical finding about learners, not a fact about numbers.");
 
-    b = b.heading("The idea at work");
+    b = b.heading("The ladder at work — 0 dB, carbon-14, discounting");
     b = b.para(|p| p
         .text("In the physical world, almost nothing is measured absolutely — physics measures a ratio against a chosen reference, exactly the rung where the exponent is 0 and the value is 1. That is what 0 dB means: a decibel level is ")
         .math(r"10\log_{10}(I/I_0)")
@@ -500,7 +544,6 @@ fn main() -> math_me::Result<()> {
     b = b.rule();
     b = b.note("Before reading on: write down your value for 5^-2. Then test it by multiplying it by 5^2 = 25 -- what should that product come to, and does yours?");
     b = b.para(|p| p
-        .text("[q-3] ")
         .math(r"5^{-2}=1/25=0.04")
         .text(", and the test is ")
         .math(r"25\times(1/25)=1")
@@ -517,19 +560,6 @@ fn main() -> math_me::Result<()> {
         .text(" fails, ")
         .math(r"25\times5^{1/2}=55.9")
         .text(" fails."));
-    b = b.rule();
-    b = b.para(|p| p
-        .text("[q-4] $100 arrives in four years at 10%. One year's growth factor is 1.1, and four of them is ")
-        .math(r"1.1^4=1.4641")
-        .text(". The minus in ")
-        .math(r"1.1^{-4}")
-        .text(" says divide by that, not negate it: ")
-        .math(r"PV=100\times1.1^{-4}=100/1.4641=\$68.30")
-        .text(". Check it forwards — ")
-        .math(r"68.30\times1.4641=\$100.00")
-        .text(" — four rungs down and four rungs back up land where you started, which is the multiplicative-inverse test settling it without consulting anything else. Both rivals fail that test: linearising to -40% gives $60, and ")
-        .math(r"60\times1.4641=\$87.85")
-        .text(", not $100."));
 
     // -------------------------------------------------------------
     // Idea 3
@@ -561,6 +591,8 @@ fn main() -> math_me::Result<()> {
         .math(r"b^{1/n}")
         .text(" possibly mean? Demand that power-of-a-power keeps working:"));
     b = b.display(r"\left(b^{1/n}\right)^n = b^{(1/n)\cdot n} = b^1 = b");
+    b = b.explain(r"\left(b^{1/n}\right)^n = b^{(1/n)\cdot n} = b^1 = b", "Forcing, and what it costs",
+        "This line does not compute b^(1/n); it constrains it. And the constraint is paid for by two different axioms. Uniqueness is cheap and comes from ORDER: t -> t^n is strictly increasing on the positives, so at most one positive number can satisfy this — an argument that works just as well inside the rationals. Existence is the expensive half and comes from COMPLETENESS: b^(1/n) IS the least upper bound of the set of t > 0 with t^n <= b, and that supremum exists in the reals and not in the rationals. Which is exactly why root 2 is missing there while the forcing argument is not.");
     b = b.para(|p| p
         .text("So ")
         .math(r"b^{1/n}")
@@ -579,19 +611,34 @@ fn main() -> math_me::Result<()> {
         .math(r"8^{2/3}=\left(8^{1/3}\right)^2=2^2=4")
         .text(", beating cubing 8 to 512 and then hunting for a cube root."));
     b = b.para(|p| p
-        .text("Before you go on: a very common reading of ")
+        .text("A very common reading of ")
         .math(r"x^{1/2}")
         .text(" is \"x divided by 2\". Test it against the one thing ")
         .math(r"x^{1/2}")
         .text(" has to satisfy, ")
         .math(r"\left(x^{1/2}\right)^2=x")
-        .text(". Does ")
-        .math(r"(x/2)^2")
-        .text(" equal ")
-        .math(r"x")
-        .text("? It equals ")
+        .text("."));
+    b = b.rule();
+    b = b.note("Before reading on: does (x/2)^2 equal x? Work it out.");
+    b = b.para(|p| p
+        .text("It equals ")
         .math(r"x^2/4")
         .text(". The fraction is in the exponent, so it acts on the tally, not on the base."));
+
+    b = b.para(|p| p
+        .text("Something stronger is true for ")
+        .math(r"b>0")
+        .text(": representation-independence is itself a theorem — ")
+        .math(r"b^{m/n}")
+        .text(" depends only on the value of the exponent, never on which fraction you happened to write, which is precisely why the textbook \"lowest terms\" proviso is provably redundant for positive bases."));
+    b = b.para(|p| p
+        .text("Applied — physical: the cleanest fractional exponent in physics is Kepler's ")
+        .math(r"T=a^{3/2}")
+        .text(", held as \"one full copy of the distance, times the square root of another\". Applied — finance: the 1/n exponent is de-annualising, the most routine conversion in the subject. Toy numbers: a fund goes from $100 to $133.10 in three years. Dividing the total, ")
+        .math(r"33.1\%/3=11.03\%")
+        .text(", applies arithmetic to something multiplicative. The root gives ")
+        .math(r"1.331^{1/3}=1.10")
+        .text(" exactly, 10% — the 1.03 percentage points of difference are the interest-on-interest the division discarded."));
 
     b = b.heading("Irrational exponents");
     b = b.para(|p| p
@@ -619,7 +666,30 @@ fn main() -> math_me::Result<()> {
         .math(r"2^{\surd2}=2.665144\ldots")
         .text(". Exactly one number survives the pincer, and every law survives the limit. A fund that triples in three years has an annual growth factor of ")
         .math(r"3^{1/3}=1.44224\ldots")
-        .text(" — no fraction whatsoever cubes to 3, so the most routine calculation in the subject already lives out here. (The picture of this squeeze, three brackets closing on 2^root2, is placed at the end of layer 2 below, where the same forcing argument is developed as a real function.)"));
+        .text(" — no fraction whatsoever cubes to 3, so the most routine calculation in the subject already lives out here."));
+
+    b = b.figure(Figure::new(ILL6_SVG, "Three brackets closing on 2^root2: one shared scale, three brackets. [2^1.4, 2^1.5] is 0.1894 wide, [2^1.41, 2^1.42] is 0.0185, and [2^1.414, 2^1.415] is 0.00185 -- a tenfold narrowing each step, none of them zoomed. The red line at 2^root2 = 2.665144 sits inside all three, because the brackets are nested -- exactly one number survives the pincer, which is why b^x for irrational x is forced, not chosen."));
+
+    b = b.para(|p| p
+        .text("That squeeze has done more than settle one number: it fills the whole gap to the irrationals, and ")
+        .math(r"b^x")
+        .text(" is a function on the whole real line — idea 4 takes up what shape it is forced into. One honest caveat first, because \"every law survives the limit\" is very slightly too strong: strict inequalities do not automatically transfer (limits preserve ≤ but not <), the scope condition ")
+        .math(r"b>0")
+        .text(" stops being a convenience and becomes mandatory, and power-of-a-power needs two stages rather than one."));
+    b = b.para(|p| p
+        .text("Applied — physical: inverse-square (")
+        .math(r"I\propto d^{-2}")
+        .text(") is a power function, fixed exponent varying base; Beer–Lambert (")
+        .math(r"I=I_0e^{-\alpha x}")
+        .text(") is an exponential function, fixed base varying exponent — distance spreads light out, fog eats a fixed fraction per metre. Toy numbers: in fog thick enough that each metre halves the light, at 2 m both laws leave 1/4 — dead level — but at 20 m inverse-square leaves 1/400 while the fog leaves ")
+        .math(r"2^{-20}=1/1{,}048{,}576")
+        .text(", about 2,600 times more punishing, and the gap widens forever."));
+    b = b.para(|p| p
+        .text("Applied — finance: genuinely real exponents arrive the moment a cash flow is not a whole number of periods away, which is almost always — the exponent is a year fraction from a day-count convention. Toy numbers: a $100 payment falls due in 137 days at 5% ACT/365, ")
+        .math(r"t=137/365=0.375342")
+        .text(" years, giving ")
+        .math(r"100\times1.05^{-0.375342}=\$98.1854")
+        .text(". Pro-rating the rate instead — a genuine market convention, not simply an error — gives $98.1579, a gap of 2.8 cents per $100."));
 
     b = b.heading("Where the forcing stops");
     b = b.para(|p| p
@@ -629,7 +699,9 @@ fn main() -> math_me::Result<()> {
         .math(r"2/6")
         .text(" are the same number, so any honest ")
         .math(r"b^{m/n}")
-        .text(" must agree on both spellings, but:"));
+        .text(" must agree on both spellings."));
+    b = b.rule();
+    b = b.note("Before reading on: (-8)^(1/3) = -2, and you can check it — (-2)^3 = -8. Now compute (-8)^(2/6) the way the laws tell you to: square first, then take the sixth root. Write your number down.");
     b = b.display(r"(-8)^{1/3} = -2, \qquad (-8)^{2/6} = \left((-8)^2\right)^{1/6} = 64^{1/6} = +2");
     b = b.para(|p| p
         .text("One exponent, two answers. The standard fix is to require ")
@@ -638,7 +710,7 @@ fn main() -> math_me::Result<()> {
         .math(r"(-4)^{1/2}")
         .text(" is not a real number (in the complex numbers it is ")
         .math(r"2i")
-        .text(", the doorway to layer 8). And ")
+        .text(", the doorway to layer 4). And ")
         .math(r"\left(x^2\right)^{1/2}=|x|")
         .text(", not ")
         .math(r"x")
@@ -648,10 +720,84 @@ fn main() -> math_me::Result<()> {
         .math(r"z")
         .text(", ")
         .math(r"b^z")
-        .text(" is multivalued, so a branch must be chosen. Every earlier extension was forced and single-valued; that one is not — layer 8 opens it."));
+        .text(" is multivalued, so a branch must be chosen. Every earlier extension was forced and single-valued; that one is not — layer 4 opens it."));
     b = b.note("Going deeper (optional): why is \"the laws force it\" allowed to count as a definition? Because in each case law-preservation is a constraint with exactly one solution, and pinning down exactly one object is what a definition is permitted to do -- the modern standard is existence-and-uniqueness, shown as a theorem rather than merely asserted (Peacock's 1830 \"permanence of equivalent forms\" was the slogan; the rigorous replacement came later, and the principle's own author, Hankel, proved in 1867 that no hypercomplex number system can retain every law of ordinary arithmetic). The existence half needs completeness of the real numbers -- b^(1/n) literally IS the least upper bound of {t>0 : t^n <= b}, which is why sqrt(2) does not exist inside the rationals even though the forcing argument is just as valid there. Bedrock: axiom (Dedekind completeness) for existence; axiom (the ordered-field axioms, \"squares are non-negative\") for why negative bases stay irreparable; convention for the choice of principal branch once complex numbers discard the order.");
 
-    b = b.heading("The idea at work");
+    b = b.para(|p| p
+        .text("0^0, and both answers are right in their own field. In algebra and combinatorics, ")
+        .math(r"0^0=1")
+        .text(": it is the empty product, it counts the one function from the empty set to any set, and the binomial theorem needs it. Knuth argued firmly for 1; IEEE 754 specifies it. In analysis, ")
+        .math(r"0^0")
+        .text(" is an indeterminate form: if ")
+        .math(r"f(x)\to0")
+        .text(" and ")
+        .math(r"g(x)\to0")
+        .text(", ")
+        .math(r"f(x)^{g(x)}")
+        .text(" can approach anything at all depending on the path — for any target ")
+        .math(r"0<c<1")
+        .text(", set ")
+        .math(r"a_n=c^n")
+        .text(" and ")
+        .math(r"b_n=1/n")
+        .text(": both tend to 0, yet ")
+        .math(r"a_n^{b_n}=c")
+        .text(" exactly, for every ")
+        .math(r"n")
+        .text(". These are statements about different things — 0^0=1 is a definition about the expression, \"indeterminate\" is a statement about limits — and they are not in conflict."));
+    b = b.para(|p| p
+        .text("The other boundary values: ")
+        .math(r"0^n=0")
+        .text(" for ")
+        .math(r"n>0")
+        .text(", but ")
+        .math(r"0^{-n}")
+        .text(" is ")
+        .math(r"1/0")
+        .text(" — division by zero, not a special exponent rule. Negative bases with fractional exponents are refused, for the reason idea 3 exposed. And exponentiation is right-associative, so ")
+        .math(r"2^{3^2}=512")
+        .text(", not 64 — and that is a genuine convention with live dissenters: Excel, MATLAB, Octave and PostgreSQL left-associate, giving 64; Python, Ruby, Perl, Fortran and Mathematica right-associate, giving 512. A spreadsheet that says 64 is disagreeing with mathematics rather than being wrong about numbers."));
+    b = b.rule();
+    b = b.note("Before reading on: evaluate -3^2 by hand and commit to an answer. Then say what -9^(3/2) is, and what (-9)^(3/2) is.");
+    b = b.para(|p| p
+        .math(r"-3^2=-9")
+        .text(". And ")
+        .math(r"-9^{3/2}=-27")
+        .text(", while ")
+        .math(r"(-9)^{3/2}")
+        .text(" is not a real number at all. The tempting wrong answer, ")
+        .math(r"-3^2=+9")
+        .text(", is tempting enough that widely used software agrees with it: Excel evaluates ")
+        .math(r"-3^2")
+        .text(" as 9, while Microsoft's own VBA returns -9 — two products from one company, no arithmetic error in either, and a different number out, the cleanest available proof that precedence is a convention rather than a fact about numbers. The exponent binds tighter than the minus, so the power is taken first and the minus applied last: ")
+        .math(r"-3^2")
+        .text(" means ")
+        .math(r"-(3^2)=-9")
+        .text("; only ")
+        .math(r"(-3)^2=9")
+        .text(" makes the base negative. The same reading settles the harder pair: ")
+        .math(r"-9^{3/2}=-\left(9^{3/2}\right)=-\left(9^{1/2}\right)^3=-27")
+        .text(", write ")
+        .math(r"9^{1/2}")
+        .text(" as \"root 9\", whereas ")
+        .math(r"(-9)^{3/2}")
+        .text(" asks for the root of a negative number, which the reals do not supply. A rate calculation whose value changes when it is ported has a convention bug, not an arithmetic bug — the fix is a bracket, not a rewrite."));
+    b = b.para(|p| p
+        .text("Applied — finance, three boundary cases that are live hazards in valuation code. One: the annuity factor is 0/0 at a zero rate — ")
+        .math(r"PV=PMT\times(1-(1+r)^{-n})/r")
+        .text(" — write this as PMT times the fraction (1 minus (1+r) to the minus n) over r — returns NaN at ")
+        .math(r"r=0")
+        .text(" from a naive implementation, though the true answer is plainly ")
+        .math(r"n")
+        .text(" undiscounted payments; and zero is not hypothetical — the ECB's deposit facility was negative from 2014 to 2022. Two: ")
+        .math(r"0^n=0")
+        .text(" but ")
+        .math(r"0^{-n}")
+        .text(" is undefined — a position that loses everything has growth factor exactly 0, and five years of +50% do not repair it, ")
+        .math(r"0\times1.5^5=0")
+        .text(". Three: negative bases are refused, and finance meets the refusal at negative equity — a margin account closing negative supplies a negative base, and a geometric return is not reported for a blown-up account rather than reported as a large negative number."));
+
+    b = b.heading("Forcing at work — the piano nobody voted on");
     b = b.para(|p| p
         .text("The most audible case of forcing is a piano keyboard. Analogy — the piano nobody voted on. An octave must double the frequency, and all twelve semitone steps must be the same multiplier, or a tune changes character when started on a different key: two requirements, one unknown, ")
         .math(r"s^{12}=2")
@@ -705,7 +851,7 @@ fn main() -> math_me::Result<()> {
     b = b.rule();
     b = b.note("Before reading on: a fund goes from $100 to $121 over two years. What was the annual rate?");
     b = b.para(|p| p
-        .text("[q-5] The tempting answer halves the 21% total: 10.5% a year. Test it — ")
+        .text("The tempting answer halves the 21% total: 10.5% a year. Test it — ")
         .math(r"1.105^2=1.221025")
         .text(", which would have produced $122.10, more than actually happened. The forced answer is ")
         .math(r"1.21^{1/2}=1.1")
@@ -714,8 +860,10 @@ fn main() -> math_me::Result<()> {
         .text(" as \"the square root of 1.21\" — so 10.0% a year, and ")
         .math(r"1.1^2=1.21")
         .text(" exactly. The missing half a percentage point is the cross term: in year two the growth applies to year one's growth as well as to the principal."));
+    b = b.rule();
+    b = b.note("Now you do one: a different fund goes from $100 to $144 over two years. Write down the annual rate before reading on.");
     b = b.para(|p| p
-        .text("[q-6] Now you do one: a different fund goes from $100 to $144 over two years. Its factor ")
+        .text("Its factor ")
         .math(r"g")
         .text(" satisfies ")
         .math(r"g^2=1.44")
@@ -737,7 +885,6 @@ fn main() -> math_me::Result<()> {
     b = b.rule();
     b = b.note("Before reading on: a stock typically moves about 2% a day. What is its annual volatility -- and why is the exponent 1/2 and not 1?");
     b = b.para(|p| p
-        .text("[q-7] ")
         .math(r"\sigma_{\mathrm{ann}}=0.02\times252^{1/2}=0.02\times15.8745=31.75\%")
         .text(" a year. Scaling by the period count instead of its square root would give ")
         .math(r"0.02\times252=504\%")
@@ -775,6 +922,15 @@ fn main() -> math_me::Result<()> {
     // -------------------------------------------------------------
     b = b.rule();
     b = b.heading("Idea 4 — Equal steps added to the exponent multiply the value by equal factors");
+    b = b.note("Before reading on: idea 2's ladder stepped the exponent up by 1 and multiplied by b. What does stepping it up by 3 multiply by? By T?");
+    b = b.para(|p| p
+        .text("You have already been up this ladder. Idea 2's rung was ")
+        .math(r"b^{x+1} = b^x\cdot b")
+        .text(" — one step, one factor of ")
+        .math(r"b")
+        .text(". Nothing in that argument cared that the step was 1. Widen it from 1 to any ")
+        .math(r"T")
+        .text(" and the same thing happens, and that is the whole of idea 4:"));
     b = b.display(r"b^{x+y} = b^x\cdot b^y");
     b = b.explain(r"b^{x+y} = b^x\cdot b^y", "The functional equation",
         "Move a fixed distance along the exponent and the value is multiplied by a fixed factor -- wherever you started from. This single mechanism, additive input and multiplicative output, is what the word \"exponential\" actually means. It is the only law in the whole topic that is sufficient, not just necessary: assume only this equation plus one mild regularity condition and f is forced to be b^x, nothing else.");
@@ -783,6 +939,8 @@ fn main() -> math_me::Result<()> {
         .math(r"b^x")
         .text(" and the content is even starker:"));
     b = b.display(r"\frac{b^{x+T}}{b^{x}} = b^{T}");
+    b = b.explain(r"\frac{b^{x+T}}{b^{x}} = b^{T}", "Why a half-life exists at all",
+        "Dividing kills the starting point: whatever x was, it cancels. So the multiplier over a window depends only on the window's width — which is the entire proof that a doubling time or a half-life is one number rather than one number per starting point. Run it backwards and it is a test: a process with no such number, like a flat £10 a year, is not exponential.");
     b = b.para(|p| p
         .text("The multiplier over a window depends only on the window's width, never on where the window starts. That one line is the entire proof that a doubling time or a half-life exists at all and is the same number everywhere on the curve."));
     b = b.para(|p| p
@@ -806,7 +964,9 @@ fn main() -> math_me::Result<()> {
         .math(r"x^{10}")
         .text(" — at exactly ")
         .math(r"x=10")
-        .text(" — and never looks back."));
+        .text(" — and never looks back. The threshold is fully explicit and calculus-free; Bernoulli's inequality gives it directly. But \"eventually\" can be very late indeed: for a savings-account base, ")
+        .math(r"b=1.08,\ p=10")
+        .text(", the ratio turns upward at year 130 and does not cross 1 until between year 881 and 882 — the exponential spends 750 years gaining before it is visibly ahead, which is exactly why exponential growth bias survives observation."));
     b = b.para(|p| p
         .text("That forces a distinction people get wrong for years: a power function fixes the exponent and varies the base (")
         .math(r"f(x)=x^n")
@@ -824,16 +984,9 @@ fn main() -> math_me::Result<()> {
         .math(r"n")
         .text(" grows."));
 
-    b = b.heading("Reading it backwards: a logarithm is an exponent");
+    b = b.heading("Reading it backwards: what the logarithm buys");
     b = b.para(|p| p
-        .text("Every use of ")
-        .math(r"b^x")
-        .text(" so far has asked: given the exponent, what is the value? The reverse question — what exponent produced this value? — is a logarithm, and one sentence gets you through the rest of this lesson:"));
-    b = b.note("log_b(x) is the exponent that b must be raised to, in order to give x.");
-    b = b.para(|p| p
-        .text("It is not a new subject — it is this subject read right to left. \"ln\" means the logarithm to base ")
-        .math(r"e")
-        .text(" (met properly at layer 5); any base works provided you use the same one top and bottom. Three uses justify the detour. One: solving for time — ")
+        .text("You already have the one sentence, read off idea 2's ladder: a logarithm is an exponent, the answer to \"which rung is this value on\". Here is what it buys. Three uses justify having met it. One: solving for time — ")
         .math(r"(1+r)^t=2")
         .text(" asks how long money takes to double, and taking logs of both sides gives"));
     b = b.display(r"t = \frac{\ln 2}{\ln(1+r)}");
@@ -844,12 +997,47 @@ fn main() -> math_me::Result<()> {
         .math(r"72/(100r)")
         .text(". The mathematically clean constant is ")
         .math(r"100\ln2=69.3")
-        .text(", exact under continuous compounding; 72 wins in practice over the 6–10% band investment returns live in, because it divides cleanly by more numbers, while demography and ecology use the Rule of 70 because their 1–3% rates sit where 70 is the closer constant. Two: log returns, which the rest of this idea is built on. Three: reading a log-scaled chart, which is what makes forty years of price history legible on one page."));
+        .text(", exact under continuous compounding; 72 wins in practice over the 6–10% band investment returns live in, because it divides cleanly by more numbers, while demography and ecology use the Rule of 70 because their 1–3% rates sit where 70 is the closer constant. The rule is old enough to predate the logarithm it approximates: Luca Pacioli stated it in 1494, in the same book that codified double-entry bookkeeping, 120 years before Napier. Two: log returns, which the rest of this idea is built on. Three: reading a log-scaled chart, which is what makes forty years of price history legible on one page."));
     b = b.para(|p| p
         .text("History: Michael Stifel's Arithmetica integra (1544) — the book that coined the word \"exponent\" — printed an arithmetic progression beside a geometric one and observed that addition in one column corresponds to multiplication in the other, seventy years before Napier turned it into logarithms in 1614 explicitly to convert multiplication into addition for astronomy and navigation. Edmund Gunter ruled a logarithmic scale along a rule in 1620 and multiplied by stepping distances off it with dividers; Oughtred set two such scales sliding against each other around 1622, producing the slide rule — the product rule made of wood."));
-    b = b.note("Going deeper (optional): why does b^(x+y)=b^x b^y deserve to be called THE definition, rather than one law among the others? Because it is the only statement in the topic that is sufficient -- assume nothing about f except this equation plus one mild regularity condition (continuity at a point, or just monotonicity, is enough) and f is forced to be b^x; every other law drops out as a consequence, propagated one rational value at a time. Without any regularity condition at all, the equation admits monstrous discontinuous solutions built with the axiom of choice -- objects nobody has ever written down, whose graph is dense in the plane. Bedrock: axiom (the axiom of choice, for whether the monsters exist at all) -- one of only two places in this lesson the chain reaches that particular floor. And why is compound interest not merely modelled by exponentials but literally the same statement? Because holding a return for m periods then n more, versus m+n periods at once, are the same act described twice -- which IS the functional equation, with \"period\" as the exponent.");
+    b = b.note("Going deeper (optional): why does b^(x+y)=b^x b^y deserve to be called THE definition, rather than one law among the others? Because it is the only statement in the topic that is sufficient -- assume nothing about f except this equation plus one mild regularity condition (measurability is enough, or equivalently boundedness on any interval -- continuity at a point and monotonicity are the familiar sufficient versions) and f is forced to be b^x; every other law drops out as a consequence, propagated one rational value at a time. Without any regularity condition at all, the equation admits monstrous discontinuous solutions built with the axiom of choice -- objects nobody has ever written down, whose graph is dense in the half-plane above the axis -- the equation itself forces a non-trivial solution positive, since f(x) = f(x/2 + x/2) = f(x/2)^2, so the monsters are wild but cannot cross the axis. Bedrock: axiom (the axiom of choice, for whether the monsters exist at all) -- the only place in this lesson the chain reaches that particular floor, and the only floor here that is optional rather than assumed: AC is independent of the rest of set theory, so the honest answer to \"is every solution b^x?\" is \"that depends which axioms you took\". In Solovay's 1970 model every set of reals is measurable and there are no monsters at all. And why is compound interest not merely modelled by exponentials but literally the same statement? Because holding a return for m periods then n more, versus m+n periods at once, are the same act described twice -- which IS the functional equation, with \"period\" as the exponent.");
 
-    b = b.heading("The idea at work");
+    b = b.para(|p| p
+        .text("That is the whole of what the spine needs — but it is worth marking where the minimum stops being enough. The inversion is legal because for ")
+        .math(r"b>1")
+        .text(", ")
+        .math(r"b^x")
+        .text(" is strictly increasing, hence one-to-one, and it hits every positive value exactly once, so ")
+        .math(r"b^x")
+        .text(" is a bijection from the reals onto the positive reals and ")
+        .math(r"\log_b")
+        .text(" is defined on the whole positive half-line. How little is genuinely needed: for the doubling-time formula, exactly one law; for log returns and log charts, one law again, ")
+        .math(r"\ln(uv)=\ln u+\ln v")
+        .text(", the product rule read backwards."));
+    b = b.para(|p| p
+        .text("Where the minimum stops being enough — and it is a sharp line — is the first moment a logarithm meets an average or an expectation. Every log law is a statement about a single argument being transformed; averaging is entirely a question about shape. Someone armed only with \"logs add\" computes the mean of daily log returns and reports ")
+        .math(r"e^{\bar r}-1")
+        .text(" as \"the average daily return\" — that number is the geometric mean simple return, systematically smaller, because ")
+        .math(r"\ln(x+y)\neq\ln x+\ln y")
+        .text(" is the freshman's dream wearing a logarithm. The gap is smaller than it looks: midpoint concavity of \"ln\" is literally AM–GM, which this lesson already owns. What it withholds is the name — Jensen's inequality."));
+    b = b.para(|p| p
+        .text("Applied — physical: every scale spanning many orders of magnitude is a ruler laid along the exponent. Toy numbers: a quiet room is about 30 dB, a vacuum cleaner about 70 dB — how many times more sound energy? Not \"about twice\", nor \"forty times\": ")
+        .math(r"L=10\log_{10}(I/I_0)")
+        .text(", so a gap of 40 dB is ")
+        .math(r"10^4")
+        .text(" — ten thousand times the intensity."));
+    b = b.para(|p| p
+        .text("Applied — finance: the fund that fell 40% still needs its +66.7% back. Earning 8% a year, how long is that? The tempting answer divides — ")
+        .math(r"66.7/8=8.3")
+        .text(" years, or worse, ")
+        .math(r"40/8=5")
+        .text(" — but the years sit in the exponent, and only a logarithm gets them out: ")
+        .math(r"0.6\times1.08^t=1")
+        .text(" gives ")
+        .math(r"t=\ln(1/0.6)/\ln1.08=6.64")
+        .text(" years. Note that the two errors point opposite ways. Dividing by the right gain overstates the wait, because the 8% compounds; starting from the wrong +40% understated it by more than eighteen months. One habit, two directions."));
+
+    b = b.heading("Equal steps at work — the coffee, and why log returns add");
     b = b.para(|p| p
         .text("In the physical world, this law is why physics quotes half-lives and time constants rather than end dates — one number describes the entire process forever. Imagine — the coffee everyone kills ten minutes early. Wrap both hands round a mug. The room is at 20°C, the coffee was poured at 100°C, and ten minutes later it reads 60°C."));
     b = b.rule();
@@ -861,7 +1049,7 @@ fn main() -> math_me::Result<()> {
         .math(r"2^{-10}=1/1024")
         .text(", under 0.1%. And running upward, exponentials outrun every intuition: E. coli doubles about every 20 minutes, so one cell after eight hours has had 24 doublings — ")
         .math(r"2^{24}=16{,}777{,}216")
-        .text(". Fold a sheet of paper 0.1 mm thick 42 times and it passes the Moon."));
+        .text("."));
 
     b = b.para(|p| p
         .text("In financial time series, this law is why everything is analysed in logs — probably the single most consequential idea on this list for practical work:"));
@@ -878,7 +1066,7 @@ fn main() -> math_me::Result<()> {
     b = b.rule();
     b = b.note("Before reading on: a stock goes $100 -> $110 -> $99, so its two simple returns are +10% and -10%. What do the two log returns add up to?");
     b = b.para(|p| p
-        .text("[q-8, told as the document's own worked example] If the simple returns look as though they cancel to zero, the natural expectation is that the logs cancel too. They do not: ")
+        .text("If the simple returns look as though they cancel to zero, the natural expectation is that the logs cancel too. They do not: ")
         .math(r"\ln1.10=+0.0953102")
         .text(" and ")
         .math(r"\ln0.90=-0.1053605")
@@ -894,7 +1082,7 @@ fn main() -> math_me::Result<()> {
     b = b.rule();
     b = b.note("Work it out before reading on.");
     b = b.para(|p| p
-        .text("[q-8] Read ")
+        .text("Read ")
         .math(r"b^{x+y}=b^xb^y")
         .text(" backwards: a sum of logs is the log of a product, ")
         .math(r"\ln\frac{120}{100}+\ln\frac{90}{120}+\ln\frac{108}{90}=\ln\left(\frac{120}{100}\times\frac{90}{120}\times\frac{108}{90}\right)")
@@ -924,13 +1112,12 @@ fn main() -> math_me::Result<()> {
         .text(" — multiplication by a fixed factor is a rigid translation up the page. Drag the sliders below: watch the raw-dollar view flatten into a line-then-cliff shape while the log-price view stays a straight line whose slope is the rate, and watch path B slide up the page in perfect parallel as its starting level changes a thousandfold."));
     b = b.plot(Plot::new(0.0..=40.0)
         .curve("A — $100 at rate rA", "100 * (1 + rA)^x")
-        .curve("B — same rate, different start", "P0B * (1 + rA)^x")
         .curve("C — fixed 7%, $100", "100 * 1.07^x")
+        .curve("$100 plus a flat $10 a year", "100 + 10 * x")
         .param("rA", -0.10..=0.15, 0.10)
-        .param("P0B", 2.0..=2000.0, 2.0)
         .x_label("years")
         .y_label("account value ($)")
-        .caption("Linear-dollar view: the first two decades look flat and the last few look like a cliff, and nothing about the investment changed -- it is the axis, not the money. Drag rA down through zero and watch growth become decay with no seam."))
+        .caption("Linear-dollar view: the first two decades look flat and the last few look like a cliff, and nothing about the investment changed -- it is the axis, not the money. The straight line is the same $100 taking a flat $10 a year, the noun-in-the-blank made visible: at the default 10% the two are level at exactly $110 after one year, and from year two the curve simply leaves. Drag rA down to 5% to invert it -- the flat $10 then leads for twenty-six years before being overtaken anyway, which is the whole reason linear intuition survives contact with reality for so long. Drag further, through zero, and watch growth become decay with no seam."))
     ;
     b = b.plot(Plot::new(0.0..=40.0)
         .curve("ln(A) — $100 at rate rA", "ln(100) + x * ln(1 + rA)")
@@ -986,13 +1173,13 @@ fn main() -> math_me::Result<()> {
 
     b = b.heading("Which noun goes in the blank — and who decides");
     b = b.para(|p| p
-        .text("The mechanism that moves the referent has a name: capitalisation. Interest is credited into the account, at which point it stops being \"interest owed\" and becomes part of the balance — the base the next calculation is applied to. A savings account adds the $8 to the $100 and computes next period on $108. A coupon bond does the opposite: the coupon is paid out, it leaves, the face value is untouched, and a 5% bond on $100 face delivers $5 a year forever — $250 of coupons over 30 years, against the $432 the same 5% would reach if each payment rejoined the base. What compounds is never \"money\"; it is a retained stock, and retention is the switch."));
+        .text("The mechanism that moves the referent has a name: capitalisation. Interest is credited into the account, at which point it stops being \"interest owed\" and becomes part of the balance — the base the next calculation is applied to. A savings account adds the $8 to the $100 and computes next period on $108. A coupon bond does the opposite: the coupon is paid out, it leaves, the face value is untouched, and a 5% bond on $100 face delivers $5 a year forever — $150 of coupons over 30 years, and the $100 face returned at the end, $250 in hand, against the $432 the same 5% would reach if each payment rejoined the base. What compounds is never \"money\"; it is a retained stock, and retention is the switch."));
     b = b.para(|p| p
         .text("The same switch explains equities: the S&P 500's price-only record since 1928 is roughly 6% a year, its total-return record with dividends reinvested roughly 10% — over 30 years those two exponents differ by about 3×, and the entire difference is whether the dividend rejoined the base. That is also why APR and APY are separate legally mandated disclosures on opposite sides of the balance sheet — Regulation Z requires APR on credit, Regulation DD requires APY on deposits, because Congress found that inconsistent bank methods of describing interest made accounts impossible to compare."));
 
     b = b.heading("What multiplication refuses to do");
     b = b.para(|p| p
-        .text("Undoing a loss means dividing, not subtracting. Imagine — pour half the water out of the glass. Pour exactly half the water out of a full glass. Now say what percentage you must add to fill it again."));
+        .text("Undoing a loss means dividing, not subtracting. Imagine — pour exactly half the water out of a full glass."));
     b = b.rule();
     b = b.note("Before reading on: what percentage refills the glass?");
     b = b.para(|p| p
@@ -1002,25 +1189,9 @@ fn main() -> math_me::Result<()> {
         .math(r"f/(1-f)")
         .text(" and never ")
         .math(r"f")
-        .text(": -20% needs +25%, -50% needs +100%, -90% needs +900%."));
-    b = b.rule();
-    b = b.note("Before reading on: a fund falls 40%. What gain does it need to get back to where it started?");
+        .text(": -20% needs +25%, -40% needs +66.67%, -50% needs +100%, -90% needs +900%."));
     b = b.para(|p| p
-        .text("[q-10] +66.67%. The tempting wrong answer is +40%, because the loss and the recovery share a name and two things wearing the same number are assumed the same size. Test it: ")
-        .math(r"0.6\times1.4=0.84")
-        .text(", so losing 40% and gaining 40% back leaves you 16% down. What is actually needed is the factor that undoes 0.6, its reciprocal ")
-        .math(r"1/0.6=1.6667")
-        .text(", a gain of +66.67% — ")
-        .math(r"0.6\times1.6667=1.00")
-        .text(" confirms it."));
-    b = b.para(|p| p
-        .text("Percentage changes commute but do not cancel: +10% then -10% equals -10% then +10%, because multiplication is commutative — and both leave you at 0.99, not 1. A compounded outcome is governed by the geometric mean: \"+50% then -50% averages 0%\" is really ")
-        .math(r"1.5\times0.5=0.75")
-        .text(", a 25% loss, whose constant rate is ")
-        .math(r"0.75^{1/2}-1=-13.4\%")
-        .text(" per period — write ")
-        .math(r"0.75^{1/2}")
-        .text(" as \"the square root of 0.75\". AM–GM guarantees the arithmetic mean is never below the geometric mean, so an advertised \"average annual return\" is not achievable compound growth, and the gap grows with volatility, roughly half of the variance."));
+        .text("Percentage changes commute but do not cancel: +10% then -10% equals -10% then +10%, because multiplication is commutative — and both leave you at the $99 you found a moment ago, not $100. A compounded outcome is therefore governed not by the average of the returns but by the product of the factors, and layer 3 puts a number on the gap."));
     b = b.para(|p| p
         .text("Fractional periods are not linear: the monthly equivalent of a 12% annual rate is ")
         .math(r"1.12^{1/12}-1=0.949\%")
@@ -1028,10 +1199,10 @@ fn main() -> math_me::Result<()> {
         .math(r"(1+i)=(1+r)(1+\pi)")
         .text(", because two successive scalings of purchasing power compose the way any two growth factors do. Fees compound too, inside the exponent: a 1% fee against a 7% return is about 14% of the return, and over 30 years the fee factor alone is ")
         .math(r"0.99^{30}=0.7397")
-        .text(", roughly a quarter of terminal wealth gone. And a boundary case that matters more than it looks: a -100% return is an absorbing state — the growth factor is 0, every subsequent factor multiplies zero, and the geometric mean collapses to 0 no matter what follows. It is the mathematical statement of \"don't go bust\"."));
-    b = b.note("Going deeper (optional): why do people get compound growth wrong so reliably? Not innumeracy -- the errors have a direction and a shape. People LINEARISE: they extrapolate an exponential series as though it were a straight line, systematically underestimating growing series and overestimating decaying ones. Three independent research routes converge on it (Wagenaar and Sagaria 1975 onward; Stango and Zinman 2009 on real households' loan-rate perception; Levy and Tasoff 2016, whose incentivised study finds roughly a third of subjects fully biased, median bias 0.6, and 96% underestimating compound growth). Whether the bias is innate or installed by schooling in linear functions is explicitly unresolved in the literature. Bedrock: empirical fact -- a replicated, measured finding about learners, not a fact derivable from the mathematics.");
+        .text(", roughly a quarter of terminal wealth gone — which is power-of-a-product with money on it, the growth factor and the fee factor multiplying and then being raised together, so a fee is its own compounding factor and never a subtraction from the return. And a boundary case that matters more than it looks: a -100% return is an absorbing state — the growth factor is 0, every subsequent factor multiplies zero, and the geometric mean collapses to 0 no matter what follows. It is the mathematical statement of \"don't go bust\"."));
+    b = b.note("Going deeper (optional): why do people get compound growth wrong so reliably? People LINEARISE: they extrapolate an exponential series as though it were a straight line, systematically underestimating growing series and overestimating how fast the decaying ones die away. Three independent research routes converge on it (Wagenaar and Sagaria 1975 onward; Stango and Zinman 2009 on real households' loan-rate perception; Levy and Tasoff 2016, whose incentivised study finds roughly a third of subjects fully biased, median bias 0.6, and 96% underestimating compound growth). Whether the bias is innate or installed by schooling in linear functions is explicitly unresolved in the literature. Bedrock, and it splits in two: empirical fact for THAT people linearise and how many of them do; but THEOREM for the direction of the error once they do. b^t is convex, so a straight line meets it at most twice -- outside those crossings the line runs below the curve, which is why extrapolating from early data underestimates; between them the chord runs above, which is why the scribe, interpolating between 1.2^3 and 1.2^4, is five days EARLY rather than late. Same convexity, opposite side, opposite sign.");
 
-    b = b.heading("The idea at work");
+    b = b.heading("Factors at work — the liver that runs simple interest");
     b = b.para(|p| p
         .text("In the physical world, efficiencies, transmissions and losses are growth factors, chaining by multiplication for the same reason returns do. Toy numbers: three stages each 90% efficient — a turbine, a gearbox, a generator. The additive reading says 10% lost three times, so 70% out. It is ")
         .math(r"0.9^3=0.729")
@@ -1055,10 +1226,9 @@ fn main() -> math_me::Result<()> {
     b = b.rule();
     b = b.note("Before reading on: a stock returns +3%, then -1%, then +2%. What is the three-day return?");
     b = b.para(|p| p
-        .text("[q-9] +4.0094%, not +4%. A percentage change is a factor: \"up 3%\" is ×1.03, \"down 1%\" is ×0.99, \"up 2%\" is ×1.02. Multiply, because that is what \"and then\" means once the blank is filled that way: ")
+        .text("+4.0094%, not +4%. A percentage change is a factor: \"up 3%\" is ×1.03, \"down 1%\" is ×0.99, \"up 2%\" is ×1.02. Multiply, because that is what \"and then\" means once the blank is filled that way: ")
         .math(r"1.03\times0.99\times1.02=1.040094")
         .text(". Adding gives 3-1+2=+4%, and that is what almost everyone writes, including production code; the extra 0.0094 percentage points is the cross terms — the third day earning on the first day's gain."));
-    b = b.figure(Figure::new(ILL5_SVG, "Eight ways to earn: multiplying (1+r)^3 out one bracket at a time produces 2^3=8 choice-words, one per path through the three years. Sorting them by how many years earned piles them 1, 3, 3, 1 -- the third row of Pascal's triangle. At r=10% the piles are worth 1, 3r=0.300, 3r^2=0.030 and r^3=0.001, summing to 1.331. Simple interest keeps the first two columns and throws the 0.031 tail away."));
 
     // -------------------------------------------------------------
     // What the five ideas share
@@ -1066,7 +1236,7 @@ fn main() -> math_me::Result<()> {
     b = b.rule();
     b = b.heading("What the five ideas turn out to share");
     b = b.para(|p| p
-        .text("Read across the five ideas rather than down them, and the chains converge on a very small number of floors. Completeness of the real numbers is this lesson's one and only non-algebraic ingredient, bought once and bought early — the existence of nth roots, an irrational exponent, the logarithm as a total function, and the number e all cash the same cheque. The field axioms plus induction are the floor under every counting law: the laws of exponents are not facts about exponents, they are the axioms of multiplication, counted, and which axiom each law spends is what distinguishes them. The order axioms decide where the subject stops — losing order (in the complex numbers) is exactly why complex exponentiation goes multivalued. Convention chosen for consistency accounts for eleven separate human decisions in this lesson (the restriction to positive bases, the base e, 72 over 69.3, the principal branch, and more), each a choice with a reason and several with live dissenters. Empirical fact accounts for a handful of branches clustering in the applied and machine layers — the 252 trading days, RiskMetrics' λ=0.94, the referent of a percentage being a contractual clearing rule — each measured and each capable of changing. And exactly one chain in this whole lesson stops at neither an axiom nor a convention nor a measurement but at an unproven conjecture: that factoring is hard, underneath RSA."));
+        .text("Read across the five ideas rather than down them, and the chains converge on a very small number of floors. Completeness of the real numbers is this lesson's one and only non-algebraic ingredient, bought once and bought early — the existence of nth roots, an irrational exponent, the logarithm as a total function, and the number e all cash the same cheque. The field axioms plus induction are the floor under every counting law: the laws of exponents are not facts about exponents, they are the axioms of multiplication, counted, and which axiom each law spends is what distinguishes them. The order axioms decide where the subject stops — losing order (in the complex numbers) is exactly why complex exponentiation goes multivalued. Convention chosen for consistency accounts for eleven separate human decisions in this lesson (the restriction to positive bases, the base e, 72 over 69.3, the principal branch, and more), each a choice with a reason and several with live dissenters. Empirical fact accounts for a handful of branches clustering in the applied and machine layers — the 252 trading days, RiskMetrics' λ=0.94, the referent of a percentage being a contractual clearing rule — each measured and each capable of changing."));
     b = b.para(|p| p
         .text("Idea 1 — the exponent as a headcount of factors — is primary: it is the only one that is simultaneously a definition and a proof technique, and the only one that can be given first to a reader starting from zero. Idea 2 fixes where the count starts; idea 3 is the discipline of preserving the count once it stops being a whole number; idea 4 is the same law promoted to a continuously varying exponent; idea 5 is the count applied to growth factors instead of plain numbers. If you stop here, you have the subject — everything below is the progression outward."));
 
@@ -1076,178 +1246,9 @@ fn main() -> math_me::Result<()> {
     b = b.rule();
     b = b.heading("Part two — Outward from the spine");
     b = b.para(|p| p
-        .text("Eleven layers, ordered so each is reachable from the one before it. Layers 1–3 finish the exponent itself; layer 4 turns it around; layers 5–7 are where the finance lives; layers 8–10 are the frontier; layer 11 names the doors this lesson deliberately leaves shut. A reader who stops after layer 7 has lost nothing they will need."));
+        .text("The five ideas are complete, and each carried its own depth with it — the craft of fractional exponents, the squeeze to the irrationals, the boundary cases and the logarithm all sit inside the idea that forces them, where you met them. What follows is genuinely outward: seven layers, ordered so each is reachable from the one before. Layers 1–3 are where the finance lives; layers 4–6 are the frontier; layer 7 names the doors this lesson deliberately leaves shut. A reader who stops after layer 3 has lost nothing they will need."));
 
-    b = b.heading("Layer 1 — Fractional exponents and the return of roots");
-    b = b.para(|p| p
-        .text("Idea 3 established that ")
-        .math(r"b^{1/n}")
-        .text(" is forced; this layer is the craft that goes with it. ")
-        .math(r"b^{m/n}=\left(b^{1/n}\right)^m")
-        .text(" — root-first is the only order a human can execute unaided: two years of growth out of a three-year factor of 1.331 is ")
-        .math(r"1.331^{2/3}")
-        .text(", and root-first gives ")
-        .math(r"1.331^{1/3}=1.1")
-        .text(" then ")
-        .math(r"1.1^2=1.21")
-        .text(", while power-first means cubing 1.331 to 1.771561 and then hunting for its cube root. Something stronger is true for ")
-        .math(r"b>0")
-        .text(": representation-independence is itself a theorem — ")
-        .math(r"b^{m/n}")
-        .text(" depends only on the value of the exponent, never on which fraction you happened to write, which is precisely why the textbook \"lowest terms\" proviso is provably redundant for positive bases."));
-    b = b.para(|p| p
-        .text("Applied — physical: the cleanest fractional exponent in physics is Kepler's ")
-        .math(r"T=a^{3/2}")
-        .text(", held as \"one full copy of the distance, times the square root of another\". Applied — finance: the 1/n exponent is de-annualising, the most routine conversion in the subject. Toy numbers: a fund goes from $100 to $133.10 in three years. Dividing the total, ")
-        .math(r"33.1\%/3=11.03\%")
-        .text(", applies arithmetic to something multiplicative. The root gives ")
-        .math(r"1.331^{1/3}=1.10")
-        .text(" exactly, 10% — the 1.03 percentage points of difference are the interest-on-interest the division discarded."));
-
-    b = b.heading("Layer 2 — Real exponents, and exponentiation becoming a function");
-    b = b.para(|p| p
-        .text("With rational exponents in hand, idea 3's squeeze fills the gap to the irrationals, and ")
-        .math(r"b^x")
-        .text(" is now a function on the whole real line: strictly increasing for ")
-        .math(r"b>1")
-        .text(", strictly decreasing for ")
-        .math(r"0<b<1")
-        .text(", always positive, asymptotic to zero, never crossing it. \"Every law survives the limit\" is very slightly too strong: strict inequalities do not automatically transfer (limits preserve ≤ but not <), the scope condition ")
-        .math(r"b>0")
-        .text(" stops being a convenience and becomes mandatory, and power-of-a-power needs two stages rather than one."));
-    b = b.para(|p| p
-        .text("A fixed multiplier eventually and permanently beats any polynomial — the threshold is fully explicit and calculus-free, Bernoulli's inequality gives it directly. For a savings-account base, ")
-        .math(r"b=1.08,\ p=10")
-        .text(": the ratio turns upward at year 130 and does not cross 1 until between year 881 and 882 — the exponential spends 750 years gaining before it is visibly ahead, which is exactly why exponential growth bias survives observation."));
-    b = b.para(|p| p
-        .text("Applied — physical: inverse-square (")
-        .math(r"I\propto d^{-2}")
-        .text(") is a power function, fixed exponent varying base; Beer–Lambert (")
-        .math(r"I=I_0e^{-\alpha x}")
-        .text(") is an exponential function, fixed base varying exponent — distance spreads light out, fog eats a fixed fraction per metre. Toy numbers: in fog thick enough that each metre halves the light, at 2 m both laws leave 1/4 — dead level — but at 20 m inverse-square leaves 1/400 while the fog leaves ")
-        .math(r"2^{-20}=1/1{,}048{,}576")
-        .text(", about 2,600 times more punishing, and the gap widens forever."));
-    b = b.para(|p| p
-        .text("Applied — finance: genuinely real exponents arrive the moment a cash flow is not a whole number of periods away, which is almost always — the exponent is a year fraction from a day-count convention. Toy numbers: a $100 payment falls due in 137 days at 5% ACT/365, ")
-        .math(r"t=137/365=0.375342")
-        .text(" years, giving ")
-        .math(r"100\times1.05^{-0.375342}=\$98.1854")
-        .text(". Pro-rating the rate instead — a genuine market convention, not simply an error — gives $98.1579, a gap of 2.8 cents per $100."));
-    b = b.figure(Figure::new(ILL6_SVG, "Three brackets closing on 2^root2: one shared scale, three brackets. [2^1.4, 2^1.5] is 0.1894 wide, [2^1.41, 2^1.42] is 0.0185, and [2^1.414, 2^1.415] is 0.00185 -- a tenfold narrowing each step, none of them zoomed. The red line at 2^root2 = 2.665144 sits inside all three, because the brackets are nested -- exactly one number survives the pincer, which is why b^x for irrational x is forced, not chosen."));
-
-    b = b.heading("Layer 3 — Where the rules bend: boundary cases, conventions and machine limits");
-    b = b.para(|p| p
-        .text("0^0, and both answers are right in their own field. In algebra and combinatorics, ")
-        .math(r"0^0=1")
-        .text(": it is the empty product, it counts the one function from the empty set to any set, and the binomial theorem needs it. Knuth argued firmly for 1; IEEE 754 specifies it. In analysis, ")
-        .math(r"0^0")
-        .text(" is an indeterminate form: if ")
-        .math(r"f(x)\to0")
-        .text(" and ")
-        .math(r"g(x)\to0")
-        .text(", ")
-        .math(r"f(x)^{g(x)}")
-        .text(" can approach anything at all depending on the path — for any target ")
-        .math(r"0<c<1")
-        .text(", set ")
-        .math(r"a_n=c^n")
-        .text(" and ")
-        .math(r"b_n=1/n")
-        .text(": both tend to 0, yet ")
-        .math(r"a_n^{b_n}=c")
-        .text(" exactly, for every ")
-        .math(r"n")
-        .text(". These are statements about different things — 0^0=1 is a definition about the expression, \"indeterminate\" is a statement about limits — and they are not in conflict."));
-    b = b.para(|p| p
-        .text("The other boundary values: ")
-        .math(r"0^n=0")
-        .text(" for ")
-        .math(r"n>0")
-        .text(", but ")
-        .math(r"0^{-n}")
-        .text(" is ")
-        .math(r"1/0")
-        .text(" — division by zero, not a special exponent rule. Negative bases with fractional exponents are refused, for the reason idea 3 exposed. And exponentiation is right-associative, so ")
-        .math(r"2^{3^2}=512")
-        .text(", not 64 — a spreadsheet that says 64 is disagreeing with mathematics rather than being wrong about numbers. That last one is a genuine convention with live dissenters: Excel, MATLAB, Octave and PostgreSQL left-associate, giving 64; Python, Ruby, Perl, Fortran and Mathematica right-associate, giving 512. Excel goes further and gives unary minus higher precedence than exponentiation, returning 9 for ")
-        .math(r"-3^2")
-        .text(" while Microsoft's own VBA returns -9 — two products from one company disagreeing."));
-    b = b.rule();
-    b = b.note("Before reading on: evaluate -3^2 by hand and commit to an answer. Then say what -9^(3/2) is, and what (-9)^(3/2) is.");
-    b = b.para(|p| p
-        .text("[q-11] ")
-        .math(r"-3^2=-9")
-        .text(". And ")
-        .math(r"-9^{3/2}=-27")
-        .text(", while ")
-        .math(r"(-9)^{3/2}")
-        .text(" is not a real number at all. The tempting wrong answer, ")
-        .math(r"-3^2=+9")
-        .text(", is tempting enough that widely used software agrees with it: Excel evaluates ")
-        .math(r"-3^2")
-        .text(" as 9, Python as -9 — two programs, no arithmetic error in either, and a different number out, the cleanest available proof that precedence is a convention rather than a fact about numbers. The exponent binds tighter than the minus, so the power is taken first and the minus applied last: ")
-        .math(r"-3^2")
-        .text(" means ")
-        .math(r"-(3^2)=-9")
-        .text("; only ")
-        .math(r"(-3)^2=9")
-        .text(" makes the base negative. The same reading settles the harder pair: ")
-        .math(r"-9^{3/2}=-\left(9^{3/2}\right)=-\left(9^{1/2}\right)^3=-27")
-        .text(", write ")
-        .math(r"9^{1/2}")
-        .text(" as \"root 9\", whereas ")
-        .math(r"(-9)^{3/2}")
-        .text(" asks for the root of a negative number, which the reals do not supply. A rate calculation whose value changes when it is ported has a convention bug, not an arithmetic bug — the fix is a bracket, not a rewrite."));
-    b = b.para(|p| p
-        .text("Applied — finance, three boundary cases that are live hazards in valuation code. One: the annuity factor is 0/0 at a zero rate — ")
-        .math(r"PV=PMT\times(1-(1+r)^{-n})/r")
-        .text(" — write this as PMT times the fraction (1 minus (1+r) to the minus n) over r — returns NaN at ")
-        .math(r"r=0")
-        .text(" from a naive implementation, though the true answer is plainly ")
-        .math(r"n")
-        .text(" undiscounted payments; and zero is not hypothetical — the ECB's deposit facility was negative from 2014 to 2022. Two: ")
-        .math(r"0^n=0")
-        .text(" but ")
-        .math(r"0^{-n}")
-        .text(" is undefined — a position that loses everything has growth factor exactly 0, and five years of +50% do not repair it, ")
-        .math(r"0\times1.5^5=0")
-        .text(". Three: negative bases are refused, and finance meets the refusal at negative equity — a margin account closing negative supplies a negative base, and a geometric return is not reported for a blown-up account rather than reported as a large negative number."));
-
-    b = b.heading("Layer 4 — The inverse question: logarithms, just far enough");
-    b = b.para(|p| p
-        .text("Idea 4 introduced the one sentence: a logarithm is an exponent. This layer earns it, and marks where the minimum stops being enough. The inversion is legal because for ")
-        .math(r"b>1")
-        .text(", ")
-        .math(r"b^x")
-        .text(" is strictly increasing, hence one-to-one, and it hits every positive value exactly once, so ")
-        .math(r"b^x")
-        .text(" is a bijection from the reals onto the positive reals and ")
-        .math(r"\log_b")
-        .text(" is defined on the whole positive half-line. How little is genuinely needed: for the doubling-time formula, exactly one law; for log returns and log charts, one law again, ")
-        .math(r"\ln(uv)=\ln u+\ln v")
-        .text(", the product rule read backwards."));
-    b = b.para(|p| p
-        .text("Where the minimum stops being enough — and it is a sharp line — is the first moment a logarithm meets an average or an expectation. Every log law is a statement about a single argument being transformed; averaging is entirely a question about shape. Someone armed only with \"logs add\" computes the mean of daily log returns and reports ")
-        .math(r"e^{\bar r}-1")
-        .text(" as \"the average daily return\" — that number is the geometric mean simple return, systematically smaller, because ")
-        .math(r"\ln(x+y)\neq\ln x+\ln y")
-        .text(" is the freshman's dream wearing a logarithm. The gap is smaller than it looks: midpoint concavity of \"ln\" is literally AM–GM, which this lesson already owns. What it withholds is the name — Jensen's inequality."));
-    b = b.para(|p| p
-        .text("Applied — physical: every scale spanning many orders of magnitude is a ruler laid along the exponent. Toy numbers: a quiet room is about 30 dB, a vacuum cleaner about 70 dB — how many times more sound energy? Not \"about twice\", nor \"forty times\": ")
-        .math(r"L=10\log_{10}(I/I_0)")
-        .text(", so a gap of 40 dB is ")
-        .math(r"10^4")
-        .text(" — ten thousand times the intensity."));
-    b = b.para(|p| p
-        .text("Applied — finance: a stock falls 40%. Earning 8% a year, how long until it is whole? The tempting answer needs +40%, and ")
-        .math(r"40/8=5")
-        .text(" years. Wrong twice over: it needs +66.7%, the gain earned on the smaller base, and the years are an exponent, not a division — ")
-        .math(r"0.6\times1.08^t=1")
-        .text(" gives ")
-        .math(r"t=\ln(1/0.6)/\ln1.08=6.64")
-        .text(" years, understating the wait by more than eighteen months."));
-
-    b = b.heading("Layer 5 — e, and what happens when the steps get infinitely small");
+    b = b.heading("Layer 1 — e, and what happens when the steps get infinitely small");
     b = b.para(|p| p
         .text("Compounding more often earns more, but not without limit:"));
     b = b.display(r"\lim_{n\to\infty}\left(1+\frac rn\right)^n = e^r, \qquad\mathrm{hence}\qquad A = Pe^{rt}");
@@ -1278,7 +1279,7 @@ fn main() -> math_me::Result<()> {
         .math(r"e^{0.05}=1.05127")
         .text(" rather than 1.05 — so it discounts harder, and the annual figure is the larger. They are not one deal quoted twice; they are two deals."));
 
-    b = b.heading("Layer 6 — Compound interest and the time value of money");
+    b = b.heading("Layer 2 — Compound interest and the time value of money");
     b = b.para(|p| p
         .text("The first full applied layer, and the one most readers came for. $100 today is not merely $100 — it is $100 plus the ability to lend it out, so discounting is ")
         .math(r"A=P(1+r)^t")
@@ -1291,7 +1292,6 @@ fn main() -> math_me::Result<()> {
     b = b.rule();
     b = b.note("Before reading on: $1,000 is deposited at 6% nominal, compounded monthly, for five years. Pick one -- 1000 x 1.005^5, or 1000 x 1.06^5, or 1000 x 1.005^60.");
     b = b.para(|p| p
-        .text("[q-12] ")
         .math(r"1000\times1.005^{60}=1000\times1.348850=\$1{,}348.85")
         .text(". The tempting wrong answer, ")
         .math(r"1000\times1.005^5=\$1{,}025.25")
@@ -1338,9 +1338,9 @@ fn main() -> math_me::Result<()> {
         .math(r"1+2(0.75+0.75^2+\cdots)=7")
         .text(" metres before stopping — infinitely many bounces, finite distance, the same geometric series that makes a perpetuity worth a finite amount."));
 
-    b = b.heading("Layer 7 — Growth rates of a series that moves both ways");
+    b = b.heading("Layer 3 — Growth rates of a series that moves both ways");
     b = b.para(|p| p
-        .text("Layer 6 assumed a constant rate. Real financial series do not have one, and almost every well-known trap in investing lives in the gap. Because growth factors multiply, the average that governs terminal wealth is the geometric one, not the arithmetic one. Toy numbers: a fund returns +50%, then -50%. The arithmetic mean is 0%, and the tempting conclusion is \"flat\" — but $100 → $150 → $75: the investor is down a quarter, and the geometric mean is ")
+        .text("Layer 2 assumed a constant rate. Real financial series do not have one, and almost every well-known trap in investing lives in the gap. Because growth factors multiply, the average that governs terminal wealth is the geometric one, not the arithmetic one. Toy numbers: a fund returns +50%, then -50%. The arithmetic mean is 0%, and the tempting conclusion is \"flat\" — but $100 → $150 → $75: the investor is down a quarter, and the geometric mean is ")
         .math(r"0.75^{1/2}-1=-13.397\%")
         .text(" a year. AM–GM is exact and always holds: the arithmetic mean can never be below the geometric mean, with equality only when every return is identical. The size of the gap is approximately half the variance — and that is an approximation, unlike AM–GM itself."));
     b = b.para(|p| p
@@ -1357,13 +1357,15 @@ fn main() -> math_me::Result<()> {
         .text(" days old carries weight ")
         .math(r"w_k=(1-\lambda)\lambda^{k}")
         .text(" — a geometric sequence, so a day's influence is an exponential in its age. Drag the slider below and watch what three hundredths of movement in λ does to the market's memory."));
-    b = b.plot(Plot::new(0.0..=160.0)
+    b = b.plot(Plot::new(0.0..=80.0)
         .curve("weight w_k = (1-lambda) lambda^k", "(1 - lambda) * lambda^x")
+        .curve("half of yesterday's weight", "0.5 * (1 - lambda)")
         .param("lambda", 0.90..=0.97, 0.94)
         .vline(11.20)
+        .hline(0.06)
         .x_label("age of the observation, k trading days")
         .y_label("weight in today's variance estimate")
-        .caption("At lambda=0.94 (RiskMetrics' published daily figure) the dashed line marks the half-life, 11.20 days -- drag lambda toward 0.97 and watch it stretch toward 22.76 days. The curve's height at k=0 is exactly 1-lambda: raising lambda does not add weight to the past, it takes weight off yesterday and spreads it backwards, with the total pinned at 1 throughout."));
+        .caption("Two fixed marks hold RiskMetrics' published setting: the vertical line at 11.20 days and the horizontal one at 0.06, which is 1-0.94, the weight yesterday carries. The flat coloured line is half of yesterday's weight, so where it cuts the curve is the half-life. Drag lambda to 0.97 and two things move at once -- the curve's start drops to 0.03, and the crossing slides right to 22.76 days, away from the fixed line. Drag the other way to 0.90 and yesterday takes 0.10 while the half-life closes to 6.58 days. Raising lambda never adds weight to the past; it takes weight off yesterday and spreads it backwards, with the total pinned at 1 throughout."));
     b = b.para(|p| p
         .text("Toy numbers: with ")
         .math(r"\lambda=0.94")
@@ -1396,21 +1398,15 @@ fn main() -> math_me::Result<()> {
         .math(r"\mu")
         .text(" is not a return anyone actually earns; it is the average across paths, carried by an increasingly thin tail."));
     b = b.para(|p| p
-        .text("Three shorter consequences of the same multiplication: recovery asymmetry, the gain that undoes a loss ")
-        .math(r"d")
-        .text(" is ")
-        .math(r"1/(1-d)-1")
-        .text(", not ")
-        .math(r"d")
-        .text("; power-law tails, doubling the size of a market move divides its frequency by about 8, not by the vastly larger factor a normal distribution would demand out in the tail; and Kelly staking, which is maximising the exponent — a bet paying +50% or -40% on a fair coin staked at full size has a geometric mean of -5.13% per bet, a positive-expectation bet that reliably goes broke, while the Kelly fraction of 25% turns the same bet into steady long-run growth."));
+        .text("Two shorter consequences of the same multiplication: power-law tails, where doubling the size of a market move divides its frequency by about 8, not by the vastly larger factor a normal distribution would demand out in the tail; and Kelly staking, which is maximising the exponent — a bet paying +50% or -40% on a fair coin staked at full size has a geometric mean of -5.13% per bet, a positive-expectation bet that reliably goes broke, while the Kelly fraction of 25% turns the same bet into steady long-run growth."));
     b = b.para(|p| p
         .text("Applied — physical: the exponent 1/2 in this layer is diffusion. Einstein's 1905 result is that the typical distance a randomly bombarded particle travels from its start is proportional to the square root of time — the exact same theorem as ")
         .math(r"\sigma\surd{T}")
         .text(", not a financial convention borrowed by analogy. Toy numbers: a drunk leaves a lamppost and takes 100 one-metre steps, each north or south by a coin flip. The average displacement is genuinely 0, but the average distance is ")
         .math(r"100^{1/2}=10")
-        .text(" m; four hundred steps gives 20 m, not 40 — four times the time buys twice the distance."));
+        .text(" m; four hundred steps gives twenty metres, not forty: the same square root you annualised volatility with, only with metres where the returns were."));
 
-    b = b.heading("Layer 8 — Exponents beyond the real line");
+    b = b.heading("Layer 4 — Exponents beyond the real line");
     b = b.para(|p| p
         .text("The last extension of the ladder, and the first one that is not forced. Euler's formula, ")
         .math(r"e^{i\theta}=\cos\theta+i\sin\theta")
@@ -1438,7 +1434,7 @@ fn main() -> math_me::Result<()> {
         .math(r"\rho^ke^{ik\theta}")
         .text(" — the modulus decays geometrically while the angle accumulates, a damped cycle. When a fitted time-series model's roots come out complex, that is exactly what the model is saying about the series — a hand-off to a time-series lesson, not lesson material here."));
 
-    b = b.heading("Layer 9 — Exponentiation as an abstract operation");
+    b = b.heading("Layer 5 — Exponentiation as an abstract operation");
     b = b.para(|p| p
         .text("Strip away the numbers and the definition still works: in any group, ")
         .math(r"g^n")
@@ -1483,7 +1479,6 @@ fn main() -> math_me::Result<()> {
         .text(" swaps. Where the analogy breaks down: only one of the three laws dies — the other two hold in any associative structure with no commutativity anywhere, which is exactly why a transition-matrix power still obeys ")
         .math(r"P^{m+n}=P^mP^n")
         .text("."));
-    b = b.figure(Figure::new(ILL7_SVG, "Three swaps, and what commutativity was paying for: turning (gh)^3 = ghghgh into g^3h^3 = ggghhh takes three adjacent swaps, each sliding one h rightwards past one g. The price of the re-ordering is exactly C(3,2)=3, the same number sitting in front of the r^2 term of (1+r)^3, because both are counts of pairs chosen from n=3 things."));
     b = b.para(|p| p
         .text("Applied — physical: rotations are the everyday case, ")
         .math(r"R(\theta)^n=R(n\theta)")
@@ -1509,7 +1504,7 @@ fn main() -> math_me::Result<()> {
         .math(r"(1+r)^n")
         .text("'s binomial expansion, in another setting."));
 
-    b = b.heading("Layer 10 — Up the ladder, and the numbers exponentiation manufactures");
+    b = b.heading("Layer 6 — Up the ladder, and the numbers exponentiation manufactures");
     b = b.para(|p| p
         .text("The frontier, and the layer that puts exponentiation in its place. This layer is theory — it has no application, and that is a finding rather than an omission: both the physical and the financial lenses were searched deliberately and both came back empty. Exponentiation is rung four of the hyperoperation ladder — successor, addition, multiplication, exponentiation, tetration, pentation, each rung iterating the one below. Commutativity and associativity both die at exponentiation, not one rung later as the usual story has it: ")
         .math(r"2^3=8\neq9=3^2")
@@ -1527,99 +1522,19 @@ fn main() -> math_me::Result<()> {
     b = b.para(|p| p
         .text("No application, stated plainly: in finance there is nothing at all — no interest convention, no pricing model, no risk measure and no estimator iterates exponentiation. Nothing in finance is built above rung four of this ladder. You now know where the subject's ceiling is, and that it was not arbitrary."));
 
-    b = b.heading("Layer 11 — The doors this lesson leaves shut");
+    b = b.heading("Layer 7 — The doors this lesson leaves shut");
     b = b.para(|p| p
         .text("Every item here is a door you are now equipped to walk through. Logarithms as a subject in their own right — developed here only far enough to solve the doubling-time equation, justify log returns, and read a log-scaled chart. The calculus of exponentials — ")
         .math(r"d/dx\,e^x=e^x")
-        .text(", flagged where it explains why e is called natural, but never developed, because continuous compounding is reachable as a limit of ordinary compounding without it. Itô calculus, which is where layer 7's geometric-Brownian-motion formula actually comes from, and the ")
+        .text(", flagged where it explains why e is called natural, but never developed, because continuous compounding is reachable as a limit of ordinary compounding without it. Itô calculus, which is where layer 3's geometric-Brownian-motion formula actually comes from, and the ")
         .math(r"-\sigma^2/2")
-        .text(" with it. Complex exponentiation beyond layer 8's stated facts. Full derivations of the financial models named but not opened — Black–Scholes, GARCH-family estimation by maximum likelihood, and the numerical root-finders that actually solve for IRR and YTM."));
+        .text(" with it. Complex exponentiation beyond layer 4's stated facts. Full derivations of the financial models named but not opened — Black–Scholes, GARCH-family estimation by maximum likelihood, and the numerical root-finders that actually solve for IRR and YTM."));
     b = b.para(|p| p
         .text("Why the no-calculus route worked, and exactly what it cost: the compounding limit is a limit of a sequence of ordinary numbers, and everything needed to show it exists is algebra this lesson already owns — the binomial theorem, Bernoulli's inequality, AM–GM — plus one property of the real numbers, completeness, paid for once and paid for early. Calculus is not the short road to e; it is the longer road textbooks happen to pave, because they want the derivative afterwards anyway. What you are left unable to prove, named exactly: that ")
         .math(r"d/dx\,e^x=e^x")
         .text(", the entire content of the word \"natural\"; that continuous compounding solves the instantaneous-rate model rather than merely equalling its limit; the exact size (not the existence) of the arithmetic-versus-geometric gap; and the exact size of the Rule-of-72 correction. In every case the usable statement survives and only the derivation is withheld — and in both finance cases the direction of the error is provable even when its magnitude is not."));
     b = b.para(|p| p
         .text("If you read one sequel, read this one: concavity and Jensen's inequality, the logarithm hand-off — it bites immediately and silently, the moment you average log returns and call the result \"the average return\" you have reported the geometric mean without knowing it. Then GARCH-family estimation, then numerical root-finding for YTM and IRR, then Itô calculus last."));
-
-    // ===================================================================
-    // Part three — The sixteen equations, in one place
-    // ===================================================================
-    b = b.rule();
-    b = b.heading("Part three — The sixteen equations, in one place");
-    b = b.para(|p| p
-        .text("Reference material — everything here has already been taught above; this is the collected sheet, ordered so each equation is built from the one before it. Two standing conditions govern every line: the exponent counts periods and carries no units, so the rate in the base must be quoted per that same period; and compounding is a contractual convention, not a law of nature — where the contract freezes the referent, simple interest is the correct model and these formulas are the wrong tool rather than a better one."));
-    b = b.para(|p| p
-        .text("1. The growth factor, ")
-        .math(r"P_t=P_{t-1}(1+r_t)")
-        .text(" — the translation step everything stands on. 2. Compound growth, ")
-        .math(r"P_t=P_0(1+r)^t")
-        .text(" — the forward engine. 3. Compounding frequency, ")
-        .math(r"\mathrm{APY}=(1+r/n)^n-1")
-        .text(", tending to ")
-        .math(r"e^r-1")
-        .text(" — makes rate quotes commensurable. 4. Discounting, ")
-        .math(r"PV=FV(1+r)^{-t}")
-        .text(" — the negative exponent runs time backwards; it is not a negative amount."));
-    b = b.para(|p| p
-        .text("5. A stream of payments, ")
-        .math(r"PV=\mathrm{PMT}\cdot\left(1-(1+r)^{-n}\right)/r")
-        .text(" — the geometric series collapsed; covers annuities, mortgages, bond prices and pensions in one formula. 6. CAGR, ")
-        .math(r"\mathrm{CAGR}=(V_T/V_0)^{1/T}-1")
-        .text(" — the fractional exponent earning its keep, the geometric mean of the growth factors. 7. Log returns, ")
-        .math(r"\ell_t=\ln(P_t/P_{t-1})")
-        .text(" — the change of units under which a price series becomes something a statistical model can work on."));
-    b = b.para(|p| p
-        .text("8. Arithmetic versus geometric mean, ")
-        .math(r"(1+g)^n=\prod_t(1+R_t)")
-        .text(", with ")
-        .math(r"g\le\bar R")
-        .text(" always — AM–GM is exact and unconditional, half-the-variance is an approximation. 9. Volatility scaling, ")
-        .math(r"\sigma_h=\sigma_1\,h^{1/2}")
-        .text(", so ")
-        .math(r"\sigma_{\mathrm{ann}}=\sigma_{\mathrm{daily}}\times252^{1/2}")
-        .text(". 10. EWMA, ")
-        .math(r"\sigma_t^2=\lambda\sigma_{t-1}^2+(1-\lambda)r_{t-1}^2")
-        .text(", the exponent applied to time rather than money. 11. EMA smoothing, ")
-        .math(r"S_t=\alpha P_t+(1-\alpha)S_{t-1}")
-        .text(" with ")
-        .math(r"\alpha=2/(N+1)")
-        .text(" — the same decay, differently parameterised."));
-    b = b.para(|p| p
-        .text("12. GARCH(1,1), ")
-        .math(r"\sigma_t^2=\omega+\alpha\epsilon_{t-1}^2+\beta\sigma_{t-1}^2")
-        .text(", a shock's influence ")
-        .math(r"k")
-        .text(" steps later proportional to ")
-        .math(r"(\alpha+\beta)^k")
-        .text(". 13. The lognormal price model, ")
-        .math(r"S_t=S_0\exp\left[(\mu-\sigma^2/2)t+\sigma W_t\right]")
-        .text(" — everything inside an exponential, so the price can approach zero but never pass through it. 14. Power-law tails, ")
-        .math(r"P(|r|>x)\sim x^{-\alpha}")
-        .text(" with ")
-        .math(r"\alpha\approx3")
-        .text(" — the one place the exponent sits on the variable rather than on time."));
-    b = b.para(|p| p
-        .text("15. Costs compound too, ")
-        .math(r"W_T=W_0\left[(1+r)(1-f)\right]^T")
-        .text(" — the power-of-a-product rule with money on it, licensing a fee as its own compounding factor rather than a subtraction from the return. 16. Real versus nominal, ")
-        .math(r"1+i=(1+r)(1+\pi)")
-        .text(" — the exact Fisher relation, multiplying because two successive rescalings of purchasing power compose the way any two growth factors do. A rounding error in the base becomes a real error once an exponent gets hold of it."));
-
-    // ===================================================================
-    // Where all this came from
-    // ===================================================================
-    b = b.rule();
-    b = b.heading("Where all this came from");
-    b = b.para(|p| p
-        .text("The order in which the idea and its notation actually arrived. The word came first; the symbol came two thousand years later. Euclid's Greek term for the square of a line segment gave English \"power\". Archimedes proved the first law of exponents around 250 BC — in The Sand Reckoner he effectively stated and proved ")
-        .math(r"10^a\cdot10^b=10^{a+b}")
-        .text(" while building a number system large enough to bound the grains of sand that would fill the universe."));
-    b = b.para(|p| p
-        .text("The oldest known exponential equation is a finance problem — the Babylonian tablet that opened this lesson, somewhere between 2000 and 1700 BC. Medieval Arabic algebra named powers rather than numbering them. Nicolas Chuquet's Le Triparty (1484) used raised numerals and was arguably the first to use zero and negative numbers as exponents. Michael Stifel coined the word \"exponent\" in Arithmetica integra (1544). Robert Recorde's Whetstone of Witte (1557) had to name every power for lack of general notation — square, cube, zenzizenzic (4th), sursolid (5th), all the way to zenzizenzizenzic (8th) — the absurdity of the vocabulary is the argument for notation. René Descartes' La Géométrie (1637) wrote raised ordinary decimal numerals, the notation that became universal."));
-    b = b.para(|p| p
-        .text("Compound interest was itself contested history: it was formerly called anatocism, and charging it was condemned by Roman law as the worst kind of usury. Luca Pacioli's Summa de arithmetica (1494) gave systematic treatments of simple and compound interest and stated the Rule of 72, in the same book that codified double-entry bookkeeping. Richard Witt's Arithmeticall Questions (1613) was the first book wholly devoted to compound interest. Napier's logarithms (1614) were invented to turn multiplication into addition, and Jacob Bernoulli found e in a compound-interest question in 1683, asking what happens to $1 at 100% annual interest as the compounding is split ever finer — he never named the number. Euler named and analysed it in Introductio in analysin infinitorum (1748), computing it to 18 decimal places and making the exponential a function of a continuously varying exponent rather than a table of powers."));
-    b = b.para(|p| p
-        .text("Gelfond and Schneider settled the seventh of Hilbert's 1900 problems in 1934. Donald Knuth introduced up-arrow notation in 1976, extending the ladder past exponentiation because combinatorics had produced numbers exponentiation could no longer write down. And J.P. Morgan's RiskMetrics (1994) put exponential weighting into daily risk practice with λ=0.94 — an exponent applied to time rather than to money."));
 
     // ===================================================================
     // Eight things worth repeating at dinner
@@ -1655,27 +1570,33 @@ fn main() -> math_me::Result<()> {
     b = b.rule();
     b = b.heading("What you can now re-derive");
     b = b.para(|p| p
-        .text("This is the test the whole lesson was built to pass: not can you recall the rules, but can you regenerate them. From idea 1's headcount: the product, quotient, power-of-a-power, power-of-a-product and power-of-a-quotient rules; why the product rule needs equal bases and power-of-a-product needs equal exponents; why (a+b)^n is not a^n+b^n; the binomial theorem and Pascal's triangle; Bernoulli's inequality; and why exponentiation is neither commutative nor associative."));
+        .text("This is the test the whole lesson was built to pass: not can you recall the rules, but can you regenerate them. Two questions, and each needs two of the five ideas at once — which no question so far has asked of you."));
+    b = b.rule();
+    b = b.note("Before reading on, both of them. One: a fund falls 50%. Earning 8% a year, how long until it is whole again? Two numbers, and neither is the one the mouth offers. Two: $1,000 at 6% nominal compounded monthly for five years comes to $1,348.85 — you priced that one earlier. What single ANNUAL rate would have produced the same amount? You can do this one without a calculator.");
     b = b.para(|p| p
-        .text("From idea 2's start-at-1: ")
+        .text("One needs idea 5 and idea 4. A half is not repaired by a half: what is left is half the fund, and filling it again means doubling what remains, +100% and never +50% — the glass, in a fund's clothing. Then the years are an exponent, not a division, so ")
+        .math(r"0.5\times1.08^t=1")
+        .text(" is a doubling-time question and nothing else, ")
+        .math(r"t=\ln2/\ln1.08=9.01")
+        .text(" years. The Rule of 72 hands you the same answer with no logarithm at all: 72 over 8 is 9. Two needs idea 1 and idea 3, and rewards you for not reaching for a calculator. The base and the exponent must be on the same clock, so the five years are 60 months: ")
+        .math(r"1000\times1.005^{60}=\$1{,}348.85")
+        .text(". The annual factor is the fifth root of the whole run, and power-of-a-power hands it over with no root ever taken — ")
+        .math(r"\left(1.005^{60}\right)^{1/5} = 1.005^{12} = 1.061678")
+        .text(", an APY of 6.1678%. Sixty months divided five ways is twelve months; the root was a counting question all along."));
+    b = b.explain(r"1.08^t", "The growth factor, held for t years",
+        "1.08 is one year: a percentage change is a factor, so 8% a year is x1.08 and never +8. t is the headcount of years, sitting in the exponent where no division can reach it -- which is exactly why recovering a loss is a logarithm question and not an arithmetic one.");
+    b = b.explain(r"\ln2/\ln1.08", "Doubling time, as a ratio of logarithms",
+        "How many 8% years fit inside one doubling. The top asks what exponent produces 2, the bottom what exponent produces 1.08, and the ratio is the count. Same shape as a half-life with the sign flipped, and the Rule of 72 is this quantity done in the head.");
+    b = b.para(|p| p
+        .text("From idea 1's headcount you can now rebuild: the product, quotient, power-of-a-power, power-of-a-product and power-of-a-quotient rules; the scope conditions on each; why (a+b)^n is not a^n+b^n; the binomial theorem and Pascal's triangle; and why exponentiation is neither commutative nor associative. From idea 2's start-at-1: ")
         .math(r"b^0=1")
-        .text(" and ")
-        .math(r"1^x=1")
-        .text("; ")
+        .text(", ")
         .math(r"b^{-n}=1/b^n")
-        .text(" and why ")
-        .math(r"0^{-n}")
-        .text(" is undefined; and discounting as the ladder walked backwards. From idea 3's forcing: ")
+        .text(", discounting as the ladder walked backwards, and the logarithm as the question \"which rung is this\". From idea 3's forcing: ")
         .math(r"b^{1/n}")
-        .text(" as the nth root; why non-integer exponents need ")
+        .text(" as the nth root, why non-integer exponents need ")
         .math(r"b>0")
-        .text("; CAGR and volatility-annualising as forced fractional exponents; and why complex exponents are multivalued."));
-    b = b.para(|p| p
-        .text("From idea 4's equal steps: ")
-        .math(r"b^{x+y}=b^xb^y")
-        .text(" as the definition itself, not just a law; why ")
-        .math(r"b^x>0")
-        .text(" and asymptotic to zero; the power-versus-exponential distinction; doubling time and half-life; the Rule of 72; and why log returns add while simple returns do not. From idea 5's factors-not-addends: \"up 8%\" is ×1.08; the exponent counts periods, never years; recovery asymmetry; why returns are governed by the geometric mean; and why fees and inflation compound rather than subtract."));
+        .text(", and CAGR and volatility-annualising as forced fractional exponents. From idea 4's equal steps: the functional equation as the definition itself, doubling time and half-life, the Rule of 72, and why log returns add. From idea 5's factors-not-addends: recovery asymmetry, the geometric mean, and why fees and inflation compound rather than subtract."));
     b = b.para(|p| p
         .text("And now the promise made at the top can be settled. The scribe had the right question, the right two brackets, and a ruler — and the ruler was the entire error, because a ruler adds equal amounts across a year that multiplies. Since then you have watched the same move fail on a piano tuned by division, on a mug of coffee killed ten minutes early, on a month-old return declared out of the sample, on a fund told it needed +40% back, and on about a third of a representative sample of American adults who had calculators to hand. They are one habit wearing five costumes, and you were the one who caught them."));
     b = b.note("Count the factors; do not add the amounts.");
@@ -1708,27 +1629,13 @@ fn main() -> math_me::Result<()> {
     b = b.para(|p| p
         .text("The lognormal mean-to-median ratio ")
         .math(r"e^{s^2/2}")
-        .text(" is the arithmetic-versus-geometric factor in exact form. The textbook claim that YTM assumes coupons are reinvested at the YTM rate is challenged in the literature — YTM may simply be the single discount rate equating price to discounted cash flows, with no reinvestment condition required. Credit card and payday debt are the same exponent with the sign of ownership reversed — compounding at 20–30% APR working against the borrower."));
-    b = b.para(|p| p
-        .text("A provenance flag worth honouring: the claim that a photocopier's \"90% reduction\" scales each side length, so area falls as the square, was supplied during this lesson's construction rather than taken from a cited source — used in [ill-8] as a statement about exponents, and worth independently sourcing before any built version asserts it as a fact about copiers specifically."));
-    b = b.heading("Open questions recorded rather than resolved");
-    b = b.para(|p| p
-        .text("Whether exponential growth bias is innate or installed by early schooling in linear functions is explicitly unresolved in the literature. Whether \"volatility drag\" is the right name for the arithmetic-versus-geometric gap is contested — the mathematics is not in dispute, the framing is; this lesson uses the arithmetic-versus-geometric framing throughout and flags the popular name as contested. And how much logarithm a zero-to-hero reader needs before the finance layers land is an open scoping question this lesson resolved narrowly, teaching only \"an exponent read backwards\" plus three working uses."));
-
-    // ===================================================================
-    // Sources
-    // ===================================================================
-    b = b.rule();
-    b = b.heading("Sources");
-    b = b.para(|p| p
-        .text("Everything asserted in this lesson traces to a 320-entry source list spanning history and notation; the laws and their proofs; foundations and completeness; the functional equation and Cauchy's characterisation; e and continuous compounding; logarithms and log scales; compound interest, annuities and bond mathematics; volatility, EWMA and GARCH; floating point and IEEE 754; complex exponentiation; abstract algebra and matrix exponentials; hyperoperations and transcendence; the education-research literature on exponent errors; and the legal and regulatory material on capitalisation. Where a claim is contested — the \"volatility drag\" naming, Kleiber's exponent, the YTM reinvestment assumption, the root cause of exponent errors — both sides are on record; where a claim is a measurement rather than a theorem — the 252 trading days, λ=0.94, the IEEE exponent width, the referent of a percentage — the primary source and date are on record too, because a measurement can change."));
+        .text(" is the arithmetic-versus-geometric factor in exact form. The textbook claim that YTM assumes coupons are reinvested at the YTM rate is challenged in the literature — YTM may simply be the single discount rate equating price to discounted cash flows, with no reinvestment condition required. Credit card and payday debt are the same exponent with the sign of ownership reversed — compounding at 20–30% APR working against the borrower. And a name to meet with your guard up: the arithmetic-versus-geometric gap is widely called \"volatility drag\", and the label is contested even though the mathematics is not — this lesson keeps the descriptive name throughout."));
 
     let lesson = b.build();
 
-    // The audit call belongs inside the assert: left outside it, a release
-    // build would still compile every formula and then throw the answer
-    // away. This is a one-shot build (advisor/auditor/polish waived), so the
-    // finding list is not guaranteed empty — see the build report.
+    // Inside the assert so a release build does not compile every formula
+    // and discard the answer. Not yet empty: hover coverage is thin against
+    // the number of .math fragments, and closing it needs its own pass.
     debug_assert!(
         lesson.audit().is_empty(),
         "math errors, unexplained terms or unusable curves: {:?}",
@@ -1798,7 +1705,7 @@ const ILL2_SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
 </svg>"##;
 
 /// [ill-8] The photocopier's two buttons.
-const ILL8_SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 300" font-family="sans-serif" role="img" aria-label="Three sheets of paper nested at a shared top-left corner: the original, the sheet after seven passes at 90 percent scaled to 0.478 of the side, and the sheet after twelve passes scaled to 0.282 of the side.">
+const ILL8_SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 292" font-family="sans-serif" role="img" aria-label="Three sheets of paper nested at a shared top-left corner: the original, the sheet after seven passes at 90 percent scaled to 0.478 of the side, and the sheet after twelve passes scaled to 0.282 of the side.">
   <text x="210" y="24" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">One dial reading 90%. Two buttons.</text>
   <text x="210" y="42" text-anchor="middle" font-size="11" fill="#64748b">the dial is the base; the number of passes is the exponent</text>
   <rect x="40" y="60" width="150" height="190" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
@@ -1821,15 +1728,15 @@ const ILL8_SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
   </g>
   <line x1="40" y1="262" x2="380" y2="262" stroke="#cbd5e1" stroke-width="1"/>
   <text x="210" y="280" text-anchor="middle" font-size="12" fill="#1e293b">one more factor ADDS to the tally · one more group MULTIPLIES it</text>
-  <text x="44" y="296" font-size="11" fill="#1d4ed8">passes ADD:  x²·x³ = x⁵</text>
-  <text x="376" y="296" text-anchor="end" font-size="11" fill="#c2410c">batches MULTIPLY:  (x²)³ = x⁶</text>
 </svg>"##;
 
 /// [ill-3] The ladder with no seam.
-const ILL3_SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Six equally spaced rungs for exponents 3, 2, 1, 0, minus 1, minus 2, with bars of length 8, 4, 2, 1, one half and one quarter drawn to scale; each bar is exactly half the one above, including across the highlighted 2 to the 0 equals 1 rung.">
+const ILL3_SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Six equally spaced rungs for exponents 3, 2, 1, 0, minus 1, minus 2, with bars of length 8, 4, 2, 1, one half and one quarter drawn to scale; each bar is exactly half the one above, including across the highlighted 2 to the 0 equals 1 rung. Read left to right the picture computes a power; read right to left it computes a logarithm.">
   <g font-family="sans-serif" fill="#1f2933">
     <text x="8" y="22" font-size="13" font-weight="bold">Powers of 2, drawn to scale</text>
     <text x="8" y="38" font-size="11" fill="#6b7280">equal steps down · half the value every time</text>
+    <text x="392" y="22" font-size="10.5" text-anchor="end" fill="#2f6fb0">→ this way is a power</text>
+    <text x="392" y="37" font-size="10.5" text-anchor="end" fill="#b45309">← this way is a logarithm</text>
     <rect x="8" y="166" width="384" height="28" fill="#fdf0d5"/>
     <line x1="92" y1="48" x2="92" y2="266" stroke="#d0d5dc" stroke-width="1"/>
     <g fill="#2f6fb0">
@@ -1934,72 +1841,4 @@ const ILL6_SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
   <text y="238"><tspan x="14" fill="#1a5490" font-weight="bold">3</tspan><tspan x="30">[2^1.414, 2^1.415] = [2.66475, 2.66660]</tspan><tspan x="300">width 0.00185</tspan></text>
 </svg>"##;
 
-/// [ill-5] Eight ways to earn.
-const ILL5_SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 264" font-family="sans-serif" font-size="12" text-anchor="middle">
-  <title>Eight ways to earn: the 8 choice-words of (1+r)^3 at r = 0.10, sorted by how many years said r</title>
-  <text x="200" y="18" font-size="13" font-weight="600" fill="#16233c">(1 + r)³ at r = 0.10 — the 2³ = 8 ways to earn</text>
-  <text x="200" y="34" font-size="10" fill="#6b7891">one cell per year, left to right: 1 = leave it alone, r = earn on it</text>
-  <g font-size="9" fill="#78849b">
-    <text x="62" y="66">principal</text><text x="154" y="66">simple interest</text>
-    <text x="246" y="56">interest on</text><text x="246" y="66">interest</text>
-    <text x="338" y="46">interest on</text><text x="338" y="56">interest on</text><text x="338" y="66">interest</text>
-  </g>
-  <g font-size="11" fill="#3a4761"><text x="62" y="82">0 r · 1 way</text><text x="154" y="82">1 r · 3 ways</text><text x="246" y="82">2 r · 3 ways</text><text x="338" y="82">3 r · 1 way</text></g>
-  <g font-size="13" font-weight="600" fill="#16233c"><text x="62" y="97">1</text><text x="154" y="97">0.300</text><text x="246" y="97">0.030</text><text x="338" y="97">0.001</text></g>
-  <path d="M22 104h80M114 104h80M206 104h80M298 104h80M22 196h356" fill="none" stroke="#dbe1ec"/>
-  <g transform="translate(41,112)"><rect width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="7" y="13" fill="#5a6884">1</text><rect x="14" width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="21" y="13" fill="#5a6884">1</text><rect x="28" width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="35" y="13" fill="#5a6884">1</text></g>
-  <g transform="translate(133,112)"><rect width="14" height="18" rx="2" fill="#2b6cb0"/><text x="7" y="13" fill="#ffffff">r</text><rect x="14" width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="21" y="13" fill="#5a6884">1</text><rect x="28" width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="35" y="13" fill="#5a6884">1</text></g>
-  <g transform="translate(133,138)"><rect width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="7" y="13" fill="#5a6884">1</text><rect x="14" width="14" height="18" rx="2" fill="#2b6cb0"/><text x="21" y="13" fill="#ffffff">r</text><rect x="28" width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="35" y="13" fill="#5a6884">1</text></g>
-  <g transform="translate(133,164)"><rect width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="7" y="13" fill="#5a6884">1</text><rect x="14" width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="21" y="13" fill="#5a6884">1</text><rect x="28" width="14" height="18" rx="2" fill="#2b6cb0"/><text x="35" y="13" fill="#ffffff">r</text></g>
-  <g transform="translate(225,112)"><rect width="14" height="18" rx="2" fill="#2b6cb0"/><text x="7" y="13" fill="#ffffff">r</text><rect x="14" width="14" height="18" rx="2" fill="#2b6cb0"/><text x="21" y="13" fill="#ffffff">r</text><rect x="28" width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="35" y="13" fill="#5a6884">1</text></g>
-  <g transform="translate(225,138)"><rect width="14" height="18" rx="2" fill="#2b6cb0"/><text x="7" y="13" fill="#ffffff">r</text><rect x="14" width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="21" y="13" fill="#5a6884">1</text><rect x="28" width="14" height="18" rx="2" fill="#2b6cb0"/><text x="35" y="13" fill="#ffffff">r</text></g>
-  <g transform="translate(225,164)"><rect width="14" height="18" rx="2" fill="#eef1f7" stroke="#ccd6e5"/><text x="7" y="13" fill="#5a6884">1</text><rect x="14" width="14" height="18" rx="2" fill="#2b6cb0"/><text x="21" y="13" fill="#ffffff">r</text><rect x="28" width="14" height="18" rx="2" fill="#2b6cb0"/><text x="35" y="13" fill="#ffffff">r</text></g>
-  <g transform="translate(317,112)"><rect width="14" height="18" rx="2" fill="#2b6cb0"/><text x="7" y="13" fill="#ffffff">r</text><rect x="14" width="14" height="18" rx="2" fill="#2b6cb0"/><text x="21" y="13" fill="#ffffff">r</text><rect x="28" width="14" height="18" rx="2" fill="#2b6cb0"/><text x="35" y="13" fill="#ffffff">r</text></g>
-  <text x="200" y="216" font-size="13" fill="#16233c">1 + 0.300 + 0.030 + 0.001 = <tspan font-weight="600">1.331</tspan></text>
-  <text x="200" y="234" font-size="10" fill="#6b7891">column sizes 1, 3, 3, 1 — the third row of Pascal's triangle</text>
-  <text x="200" y="252" font-size="10" fill="#6b7891">simple interest keeps 1 + 0.300 = 1.300 and throws away the 0.031 tail</text>
-</svg>"##;
-
-/// [ill-7] Three swaps, and what commutativity was paying for.
-const ILL7_SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" font-family="sans-serif">
-<text x="200" y="18" text-anchor="middle" font-size="13" font-weight="600" fill="#1d2b36">(gh)&#179; &#8594; g&#179;h&#179; in three adjacent swaps</text>
-<g text-anchor="middle" font-size="9" fill="#8a99a6">
-  <text x="100" y="29">1</text><text x="138" y="29">2</text><text x="176" y="29">3</text>
-  <text x="214" y="29">4</text><text x="252" y="29">5</text><text x="290" y="29">6</text>
-</g>
-<g fill="#cfe0f4" stroke="#5a86ad">
-  <rect x="84" y="34" width="32" height="28"/><rect x="160" y="34" width="32" height="28"/><rect x="236" y="34" width="32" height="28"/>
-  <rect x="84" y="74" width="32" height="28"/><rect x="122" y="74" width="32" height="28"/><rect x="236" y="74" width="32" height="28"/>
-  <rect x="84" y="114" width="32" height="28"/><rect x="122" y="114" width="32" height="28"/><rect x="198" y="114" width="32" height="28"/>
-  <rect x="84" y="154" width="32" height="28"/><rect x="122" y="154" width="32" height="28"/><rect x="160" y="154" width="32" height="28"/>
-</g>
-<g fill="#f7dfc0" stroke="#b9865a">
-  <rect x="122" y="34" width="32" height="28"/><rect x="198" y="34" width="32" height="28"/><rect x="274" y="34" width="32" height="28"/>
-  <rect x="160" y="74" width="32" height="28"/><rect x="198" y="74" width="32" height="28"/><rect x="274" y="74" width="32" height="28"/>
-  <rect x="160" y="114" width="32" height="28"/><rect x="236" y="114" width="32" height="28"/><rect x="274" y="114" width="32" height="28"/>
-  <rect x="198" y="154" width="32" height="28"/><rect x="236" y="154" width="32" height="28"/><rect x="274" y="154" width="32" height="28"/>
-</g>
-<g font-size="14" font-weight="600" text-anchor="middle" fill="#1d2b36">
-  <text x="100" y="53">g</text><text x="138" y="53">h</text><text x="176" y="53">g</text><text x="214" y="53">h</text><text x="252" y="53">g</text><text x="290" y="53">h</text>
-  <text x="100" y="93">g</text><text x="138" y="93">g</text><text x="176" y="93">h</text><text x="214" y="93">h</text><text x="252" y="93">g</text><text x="290" y="93">h</text>
-  <text x="100" y="133">g</text><text x="138" y="133">g</text><text x="176" y="133">h</text><text x="214" y="133">g</text><text x="252" y="133">h</text><text x="290" y="133">h</text>
-  <text x="100" y="173">g</text><text x="138" y="173">g</text><text x="176" y="173">g</text><text x="214" y="173">h</text><text x="252" y="173">h</text><text x="290" y="173">h</text>
-</g>
-<g fill="none" stroke="#c0392b" stroke-width="2">
-  <rect x="118" y="70" width="78" height="36"/>
-  <rect x="194" y="110" width="78" height="36"/>
-  <rect x="156" y="150" width="78" height="36"/>
-</g>
-<g text-anchor="end" font-size="12" font-weight="600" fill="#1d2b36">
-  <text x="76" y="53">(gh)&#179;</text>
-  <text x="76" y="173">g&#179;h&#179;</text>
-</g>
-<g font-size="11" fill="#c0392b">
-  <text x="314" y="93">swap 1</text>
-  <text x="314" y="133">swap 2</text>
-  <text x="314" y="173">swap 3</text>
-</g>
-<text x="200" y="204" text-anchor="middle" font-size="12" fill="#1d2b36">3 adjacent swaps = C(3,2) = 3 pairs chosen from n = 3</text>
-<text x="200" y="222" text-anchor="middle" font-size="11" fill="#5c6b78">the same C(3,2) sits in front of r&#178; in (1+r)&#179; &#8212; both count pairs</text>
-</svg>"##;
 

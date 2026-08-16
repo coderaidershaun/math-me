@@ -1,6 +1,19 @@
-//! The Kalman filter, taught from nothing to the research edge. Each section
-//! function is named after the heading it renders, and they are chained in
-//! document order, so a section can be added without touching its neighbours.
+//! Prerequisites:
+//! - Arithmetic, and reading a formula with a symbol standing in for a number.
+//! - Averages, at the level of "what a spreadsheet does".
+//! - No probability, no calculus, no linear algebra assumed. Variance, the
+//!   Gaussian, the integral sign and the matrix are all built here.
+//!
+//! The Kalman filter from nothing: what a belief is, why it needs two numbers
+//! instead of one, and the one idea — precisions add — that generates the
+//! whole algorithm. Runs to the first three of the seven ideas and stops
+//! there, with the boundary stated rather than promised past. Finance-flavoured
+//! throughout: one illiquid corporate bond, marked and re-marked, carries every
+//! worked number in the lesson.
+//!
+//! Each section function is named after the heading it renders, and they are
+//! chained in document order, so a section can be added without touching its
+//! neighbours.
 
 use math_me::prelude::*;
 
@@ -35,7 +48,6 @@ fn build() -> Lesson {
     let b = idea_two(b);
     let b = why_one_over_sigma_squared(b);
     let b = the_mechanism_of_multiplying_gaussians(b);
-    let b = why_two_derivations_agree(b);
     let b = idea_two_at_work(b);
     let b = interlude_from_two_numbers_to_a_matrix(b);
     let b = idea_three(b);
@@ -43,6 +55,9 @@ fn build() -> Lesson {
     let b = what_breaks_when_linearity_or_gaussianity_fails(b);
     let b = is_the_gaussian_special_or_merely_convenient(b);
     let b = idea_three_at_work(b);
+    let b = running_one_the_whole_filter(b);
+    let b = where_q_and_r_come_from(b);
+    let b = where_the_spine_stops(b);
     b.build()
 }
 
@@ -51,7 +66,7 @@ fn the_paper_nobody_would_publish(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("In 1960 an engineer called Rudolf Kálmán published a paper titled \"A New Approach to Linear Filtering and Prediction Problems\". It came out in the Transactions of the ASME — Journal of Basic Engineering: a mechanical engineers' journal."))
         .para(|p| p
-            .text("Kálmán was not a mechanical engineer, and the paper has nothing to do with mechanical engineering. He published there because his ideas \"were initially met with vast skepticism, so much so that he was forced to do the first publication of his results in mechanical engineering, rather than in electrical engineering or systems engineering.\" The most influential paper in the history of estimation went into the wrong field's journal because the right field's reviewers did not believe it."))
+            .text("Kálmán was not a mechanical engineer, and the paper has nothing to do with mechanical engineering. He published there because the electrical and systems engineering journals met his results with enough scepticism to be, in effect, closed to him. The most influential paper in the history of estimation went into the wrong field's journal because the right field's reviewers did not believe it."))
         .para(|p| p
             .text("It is worth understanding why neither camp wanted it, because the reason is also the reason this subject feels harder than it is. To a statistician the paper looked like an engineer's recursion — a loop, an algorithm, something you run rather than something you prove. To an engineer it looked like a statistician's covariance matrix — a probability object with no obvious wiring diagram. It belonged to neither, which is precisely why it took an outsider to publish it, and why you will find the same equations taught today in six mutually unintelligible vocabularies."))
         .para(|p| p
@@ -105,21 +120,21 @@ fn how_to_read_this_lesson(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("This lesson is built to run from knowing nothing at all to genuinely advanced, in one document. That means two things."))
         .para(|p| p
-            .text("Nothing is assumed. Not linear algebra, not probability, not calculus. Everything the filter leans on is built here, in the order it is needed. If you already know what a covariance matrix is, Part 1 is a five-minute skim; if you do not, it is the reason the rest of the lesson will make sense."))
+            .text("Nothing is assumed. Not linear algebra, not probability, and no calculus beyond reading the integral sign as add these up — which, in this lesson, is all it ever means. Everything the filter leans on is built here, in the order it is needed. If you already know what a covariance matrix is, Part 1 is a five-minute skim; if you do not, it is the reason the rest of the lesson will make sense."))
         .para(|p| p
-            .text("It is long, and it is layered. Read it in three passes if you like:"))
+            .text("It is layered, and you can read it at two depths:"))
         .para(|p| p
-            .text("The spine — Parts 1 to 4, plus Layer 4 of Part 5. Everything a person needs to write down a filter for a new problem, run it, read its output honestly, and let a regression coefficient drift. This alone is a complete lesson, and it is built around one idea: precisions add. Roughly 90 to 120 minutes — that figure is an estimate rather than a measurement, so treat it as a shape, not a promise."))
+            .text("The spine — Part 1, then the three ideas of Part 2 with their at-work sections, then the closing section that puts the whole filter together and runs it. That is everything you need to write a filter down, run it, and read its output honestly, and it is built around one idea: precisions add. Roughly an hour — an estimate rather than a measurement, so treat it as a shape, not a promise."))
         .para(|p| p
-            .text("The depth — the Going deeper blocks scattered through the spine, which answer the why behind each rule at the moment you would ask it, and the rest of Parts 5 and 6, which run out to the research edge: nonlinear extensions, optimality theory, the Riccati equation, duality. Another two hours or so, on the same kind of estimate."))
+            .text("The depth — the Going deeper blocks scattered through the spine, which answer the why behind each rule at the moment you would ask it, and which run out as far as Cramér–Rao, Schur complements and what is still an open problem in nonlinear filtering. Every one of them is skippable on a first pass, and skipping them costs you nothing on the spine. Another hour or so if you take them all."))
         .para(|p| p
-            .text("The reference — Further notes at the end, which keeps material that is real and worth having but would clog the path."))
+            .text("This lesson stops after the third idea. There are seven, and the closing section names the other four and what each is for, so you know what you have and what you do not."))
         .para(|p| p
             .text("Two warnings before you start."))
         .para(|p| p
             .text("The word \"filter\" is a historical accident, and it misleads. It was inherited from signal processing, where a filter separates signal from noise by frequency. Here it means something narrower and much more precise: computing the distribution of a hidden quantity at the current time, given all measurements up to and including now. Nothing is being blocked or attenuated. If you hold the signal-processing meaning in your head, several things later will look wrong."))
         .para(|p| p
-            .text("The same equations are taught under at least seven names. Control engineers say Kalman filter, linear quadratic estimation, optimal observer; signal processing says recursive linear MMSE estimator or the innovations filter; Bayesian statistics says dynamic linear model; econometrics says state-space model or unobserved components model; machine learning says linear dynamical system or inference in a Gaussian HMM; geoscience says data assimilation; robotics says Bayes filter or the estimation half of SLAM. A student who learned one of these will not recognise the others, and that is a large and underrated source of confusion. There is a full cross-walk in Part 3."))
+            .text("The same equations are taught under at least seven names. Control engineers say Kalman filter, linear quadratic estimation, optimal observer; signal processing says recursive linear MMSE estimator or the innovations filter; Bayesian statistics says dynamic linear model; econometrics says state-space model or unobserved components model; machine learning says linear dynamical system or inference in a Gaussian HMM; geoscience says data assimilation; robotics says Bayes filter or the estimation half of SLAM. A student who learned one of these will not recognise the others, and that is a large and underrated source of confusion. Those are the terms to search under; they all name the five equations this lesson closes with."))
 }
 
 fn part_one(b: LessonBuilder) -> LessonBuilder {
@@ -134,7 +149,7 @@ fn part_one(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("Noise is error modelled as random rather than as a mistake. That is a decision, not a discovery: calling something noise asserts that you know its statistical behaviour but not its value on any given occasion. You are claiming to know the shape of the cloud, not where the next dart lands."))
         .para(|p| p
-            .text("Accuracy is not precision. Accuracy is closeness to the truth — the absence of bias. Precision is repeatability — small spread. A sensor can be precise and inaccurate: a tight cluster in the wrong place. This distinction matters more here than in most subjects, because the Kalman filter assumes your sensors are accurate and estimates their precision. Zero-mean noise is an assumption it makes about you. A sensor that reads half a degree high forever violates it, and the repair is not a better filter but an extra number in the model — we will meet that repair in Idea 4."))
+            .text("Accuracy is not precision. Accuracy is closeness to the truth — the absence of bias. Precision is repeatability — small spread. A sensor can be precise and inaccurate: a tight cluster in the wrong place. This distinction matters more here than in most subjects, because the Kalman filter assumes your sensors are accurate and estimates their precision. Zero-mean noise is an assumption it makes about you. A sensor that reads half a degree high forever violates it, and the repair is not a better filter but an extra number in the model: you add the bias to the state and let the filter estimate it alongside everything else. That repair is Idea 4, which is past where this lesson stops."))
         .para(|p| p
             .text("A random variable is a quantity whose value is uncertain, described by a distribution rather than a number. Statistics writes them as capitals (")
             .math(r"X")
@@ -158,8 +173,14 @@ fn part_one(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("Two summaries of a distribution do almost all the work in this subject."))
         .para(|p| p
-            .text("The expectation, or mean, is the probability-weighted average:"))
+            .text("The expectation, or mean, is the probability-weighted average. With a short list of outcomes it is exactly what you would write down — multiply each value by how likely it is, and add. A continuous quantity has no list to add up, because between any two values there are infinitely many more. So the sum sign becomes an integral sign and the weight becomes ")
+            .math(r"p(x)\,dx")
+            .text(", the density times a sliver of the line:"))
+        .explain(r"p(x)\,dx", "The density, times a sliver of the line",
+            "How much probability sits in a slice of width dx. It is the continuous stand-in for \"how likely this value is\".")
         .display(r"\mathbb{E}[X] = \int x\,p(x)\,dx")
+        .explain(r"\int", "Add these up",
+            "A sum sign asked to add infinitely many infinitely thin slices. Every time it appears in this lesson it means only that.")
         .explain(r"\mathbb{E}[X]", "The expectation of X",
             "The expectation, or mean: the probability-weighted average of X.")
         .explain(r"x\,p(x)\,dx", "Each value weighted by its density",
@@ -211,7 +232,7 @@ fn part_one(b: LessonBuilder) -> LessonBuilder {
         .explain(r"1/\sigma^2", "The precision",
             "One over the variance: how much you know, rather than how unsure you are.")
         .para(|p| p
-            .text("Three pieces of notation, met now because they are used from here to the last page. Nothing else in this lesson is left undefined, and these should not be either."))
+            .text("Three pieces of notation. The first two are used from here to the last page; the third is here so that the moment you open anyone else's account of this subject, it reads."))
         .para(|p| p
             .text("The hat always means estimate of, never the true value. ")
             .math(r"x_k")
@@ -237,7 +258,7 @@ fn part_one(b: LessonBuilder) -> LessonBuilder {
         .explain(r"P^+", "The posterior variance",
             "The variance of the belief after the measurement has been folded in.")
         .para(|p| p
-            .text("The bar says the same thing with the bookkeeping made explicit, and is the form Idea 7 and Part 3 onward use. ")
+            .text("The bar says the same thing with the bookkeeping made explicit, and is the form the literature uses once several times are in play at once. ")
             .math(r"\hat x_{k|j}")
             .text(" means the estimate of ")
             .math(r"x")
@@ -255,7 +276,7 @@ fn part_one(b: LessonBuilder) -> LessonBuilder {
             .math(r"N")
             .text(" later than ")
             .math(r"k")
-            .text(" — and it is a different question with a different answer, which Part 4 gives a section of its own."))
+            .text(" — and it is a different question with a different answer. It is called smoothing, and it is past where this lesson stops."))
         .explain(r"\hat x_{k|j}", "The estimate at k, given data up to j",
             "The estimate of x at time k, given every measurement up to and including time j.")
         .explain(r"\hat x_{k|k-1}", "The prior, in bar form",
@@ -263,7 +284,7 @@ fn part_one(b: LessonBuilder) -> LessonBuilder {
         .explain(r"\hat x_{k|k}", "The posterior, in bar form",
             "The estimate of x at time k given every measurement up to and including time k: exactly the posterior.")
         .explain(r"\hat x_{k|N}", "The estimate at k, given data up to a later N",
-            "The third case, with N later than k. It is a different question with a different answer, and Part 4 gives it a section of its own.")
+            "The third case, with N later than k: using data from after the moment you are asking about. It is called smoothing.")
 }
 
 fn part_two(b: LessonBuilder) -> LessonBuilder {
@@ -385,11 +406,7 @@ fn why_a_belief_needs_a_second_number(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("an upward parabola in ")
             .math(r"w")
-            .text(", so it has one lowest point and no other. Setting ")
-            .math(r"V'(w)=0")
-            .text(" gives"))
-        .explain(r"V'(w)", "The slope of the combined variance",
-            "How the combined error variance changes as the weight moves. It is zero at the parabola's one lowest point.")
+            .text(", so it has one lowest point and no other. That lowest point sits at"))
         .display(r"w^\star = \frac{\sigma_2^2}{\sigma_1^2+\sigma_2^2}")
         .explain(r"w^\star", "The best weight",
             "The weight on the first estimate that makes the combined error variance as small as it can be.")
@@ -398,15 +415,9 @@ fn why_a_belief_needs_a_second_number(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("Notice where the two second numbers sit: they are the arguments of the function that produces the answer. A rule that ignores them is not a simpler rule — it is this same formula evaluated at the wrong ")
             .math(r"w")
-            .text(", and by the shape of the parabola it is strictly worse than the right one except by coincidence."))
-        .para(|p| p
-            .text("Two checks you can do in your head. If ")
-            .math(r"\sigma_1^2=\sigma_2^2")
-            .text(", then ")
+            .text(", and by the shape of the parabola it is strictly worse than the right one except by coincidence. Two checks you can do in your head. If the two are equally uncertain, ")
             .math(r"w^\star=\frac12")
-            .text(" — the familiar average. If ")
-            .math(r"\sigma_2^2=0")
-            .text(", a perfect sensor, then ")
+            .text(" — the familiar average. If the second source is a perfect sensor, ")
             .math(r"w^\star=0")
             .text(" — take the sensor and discard the model. And the minimum value is"))
         .explain(r"\frac12", "One half",
@@ -445,7 +456,7 @@ fn why_the_second_number_is_recomputed(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("Could you not just measure your uncertainty once and hard-code it? No, because the correct weight provably changes with history, by orders of magnitude, and it changes in a way the best guess does not record."))
         .para(|p| p
-            .text("Two beliefs can have an identical mean and yet deserve completely different responses to an identical next measurement — one having seen a thousand confirmations, the other having just been switched on. The cleanest demonstration is a case we will solve exactly later: filtering a constant with ")
+            .text("Two beliefs can have an identical mean and yet deserve completely different responses to an identical next measurement — one having seen a thousand confirmations, the other having just been switched on. The cleanest demonstration is one you can run by hand in four lines: filtering a constant with ")
             .math(r"F=H=1")
             .text(", ")
             .math(r"Q=0")
@@ -471,7 +482,7 @@ fn why_the_second_number_is_recomputed(b: LessonBuilder) -> LessonBuilder {
         .explain(r"1/100", "One hundredth",
             "The weight the hundredth measurement deserves.")
         .para(|p| p
-            .text("On top of that, the uncertainty also grows whenever time passes without evidence and shrinks whenever evidence arrives — the sawtooth of Idea 5. So the uncertainty is not a setting of the algorithm. It is part of the state of the belief, with its own equation of motion. That is the concrete content of \"two equations per step instead of one\"."))
+            .text("On top of that, the uncertainty also grows whenever time passes without evidence and shrinks whenever evidence arrives — a sawtooth you will watch happen, on this bond, in the closing section. So the uncertainty is not a setting of the algorithm. It is part of the state of the belief, with its own equation of motion. That is the concrete content of \"two equations per step instead of one\"."))
 }
 
 fn how_it_updates_what_it_cannot_observe(b: LessonBuilder) -> LessonBuilder {
@@ -497,6 +508,25 @@ fn how_it_updates_what_it_cannot_observe(b: LessonBuilder) -> LessonBuilder {
         .explain(r"X,Y", "X and Y taken together",
             "The two quantities whose variances add — and they add only when the two are independent.")
         .para(|p| p
+            .text("One step is worth spelling out, because it is where the claim is actually earned. Those two rules are about a quantity's own spread, and ")
+            .math(r"P")
+            .text(" is not the state's spread — it is the error's. So apply them to the error. The truth moves as ")
+            .math(r"x_k = Fx_{k-1}+w_k")
+            .text(" and your estimate moves as ")
+            .math(r"\hat x^-_k = F\hat x_{k-1}")
+            .text(", so subtracting one from the other, ")
+            .math(r"e^-_k = Fe_{k-1} + w_k")
+            .text(" — the old error, pushed through the same map, plus this step's fresh noise. Now the two rules apply directly. Notice what had to be true: the fresh noise must be independent of the error already accumulated, or the cross-term survives and the addition rule is not available at all."))
+        .explain(r"\hat x^-_k", "The prior estimate at step k",
+            "Your prediction of the state at step k, before this step's measurement is read.")
+        .explain(r"F\hat x_{k-1}", "Last step's estimate, pushed forward",
+            "The previous best guess carried through the motion map.")
+        .explain(r"e^-_k", "The prior error",
+            "How far the truth sits from your prediction of it. It is this, not the state, whose spread P tracks.")
+        .explain(r"Fe_{k-1}", "The old error, pushed forward",
+            "Last step's error carried through the same motion map the state goes through.")
+        .note("If the matrix notation below means nothing yet, nothing is lost: read every matrix as a plain number. F becomes a number, F P Fᵀ becomes F²P, and the two rules are the two you just met. The Interlude builds the matrix version properly, and it changes no idea in this section.")
+        .para(|p| p
             .text("In matrix dress these are exactly ")
             .math(r"P\mapsto FPF^\top")
             .text(" and ")
@@ -515,7 +545,9 @@ fn how_it_updates_what_it_cannot_observe(b: LessonBuilder) -> LessonBuilder {
             .math(r"P_k")
             .text(" and ")
             .math(r"K_k")
-            .text(" do not depend on the measurements at all and can be computed before a single datum exists. That is the \"know your Thursday confidence before Thursday\" fact from the opening, and it is not a curiosity — it has four consequences we will collect in Part 3."))
+            .text(" do not depend on the measurements at all and can be computed before a single datum exists. That is the \"know your Thursday confidence before Thursday\" fact from the opening, and it is not a curiosity: it means the gain schedule can be worked out offline, it means a filter can be tuned before it is ever deployed, and it means — this is the dark side the opening promised — that a confident-looking ")
+            .math(r"P")
+            .text(" is not evidence of anything, because it was never going to be anything else."))
         .explain(r"P\mapsto FPF^\top", "The covariance, pushed through the motion",
             "The predict step's first half in matrix dress: P is replaced by F P F transpose, which is the scaling rule for a linear map.")
         .explain(r"FPF^\top", "The state covariance, sandwiched by the motion",
@@ -523,39 +555,9 @@ fn how_it_updates_what_it_cannot_observe(b: LessonBuilder) -> LessonBuilder {
         .explain(r"P\mapsto P", "The covariance, replaced by itself plus something",
             "The predict step's second half: P is replaced by P plus the process noise Q, which is the addition rule for independent quantities.")
         .para(|p| p
-            .text("Two more things fall out, and the second one is a debugging rule you will use for the rest of your life."))
-        .para(|p| p
-            .text("First, the propagation is incapable of producing an illegitimate uncertainty. ")
-            .math(r"A\Sigma A^\top")
-            .text(" is automatically symmetric, since ")
-            .math(r"(A\Sigma A^\top)^\top = A\Sigma^\top A^\top = A\Sigma A^\top")
-            .text("; and it is automatically non-negative in every direction, since ")
-            .math(r"u^\top A\Sigma A^\top u = (A^\top u)^\top \Sigma (A^\top u) = w^\top\Sigma w \ge 0")
-            .text(". Adding ")
-            .math(r"Q\succeq 0")
-            .text(" preserves both."))
-        .explain(r"A\Sigma A^\top", "A covariance pushed through a linear map",
-            "The spread Σ after the map A has been applied to it. The map appears on both sides because spread scales by the square of a scale.")
-        .explain(r"(A\Sigma A^\top)^\top", "The transpose of the sandwich",
-            "The sandwich turned about its diagonal. It comes back to the sandwich itself, which is what being symmetric means.")
-        .explain(r"A\Sigma^\top A^\top", "The transpose, expanded",
-            "What transposing the sandwich gives once the order is reversed term by term.")
-        .explain(r"u^\top A\Sigma A^\top u", "The sandwich, read in one direction",
-            "How much spread the sandwich claims along the direction u. It can never come out negative.")
-        .explain(r"(A^\top u)^\top \Sigma (A^\top u)", "The same quantity, regrouped",
-            "The direction u carried back through A first, so that the whole thing is Σ read along a single direction.")
-        .explain(r"w^\top\Sigma w", "The spread of Σ along a direction",
-            "How much spread Σ claims along the direction w. Never negative, which is what makes the result a legitimate uncertainty.")
-        .explain(r"Q\succeq 0", "The process noise is non-negative",
-            "Q claims no negative spread in any direction, so adding it keeps the result a legitimate uncertainty.")
-        .para(|p| p
-            .text("Second, and therefore: if a running filter's ")
+            .text("A debugging rule falls out of that, and you will use it for the rest of your life. The propagation is incapable of producing an illegitimate uncertainty: a spread carried through a map and added to another spread is still a spread, in every direction, by the same two rules. So if a running filter's ")
             .math(r"P")
-            .text(" ever loses symmetry or acquires a negative eigenvalue, that is never mathematics. It is arithmetic. Which is exactly why \"true divergence\" is a numerical diagnosis with numerical fixes, and why the Joseph form — a sum of two such sandwiches — is safe where ")
-            .math(r"(I-KH)P^-")
-            .text(", a difference, is not."))
-        .explain(r"(I-KH)", "The shrinkage factor",
-            "What survives of the prior covariance once the measurement has been folded in. Because it is a difference, arithmetic error can push it out of shape, which the Joseph form's sum cannot.")
+            .text(" ever loses symmetry or claims a negative spread in some direction, that is never mathematics. It is arithmetic — rounding error — and it has numerical fixes rather than mathematical ones. The Interlude gives the matrix statement of this once the vocabulary is in place."))
         .para(|p| p
             .text("One honest question remains. Why is a number computed entirely from assumptions entitled to be called \"how wrong I could be\"?"))
         .para(|p| p
@@ -573,23 +575,9 @@ fn how_it_updates_what_it_cannot_observe(b: LessonBuilder) -> LessonBuilder {
         .explain(r"F,H,Q,R", "The four assumptions",
             "How the world moves, how it reveals itself, and how noisy each of those is. P is exactly as true as these four and no more.")
         .para(|p| p
-            .text("What rescues this from being unfalsifiable is that the same assumptions make a prediction about something you can see without ever knowing the truth: the surprise must have covariance ")
-            .math(r"S_k = H_kP_{k|k-1}H_k^\top + R_k")
-            .text(", so the normalised squared surprise ")
-            .math(r"\tilde y_k^\top S_k^{-1}\tilde y_k")
-            .text(" must average ")
-            .math(r"m")
-            .text(". Ground truth is never required. ")
+            .text("What rescues this from being unfalsifiable is that the same assumptions make a prediction about something you can see without ever knowing the truth. The filter says how far it expects each measurement to miss its own forecast — and then you get to watch how far they actually miss. If the disagreements are consistently bigger than the filter said they would be, the model is wrong, and you knew it without ever seeing the truth. Ground truth is never required. ")
             .math(r"P")
-            .text(" is a definition that arrives with an experiment attached — which is why consistency testing (Idea 7) is not an optional extra. It is the only thing standing between \"an uncertainty\" and \"a number someone made up\"."))
-        .explain(r"S_k", "The surprise covariance at step k",
-            "How spread out the disagreement between measurement and forecast ought to be, if the model is right.")
-        .explain(r"H_kP_{k|k-1}H_k^\top", "Your own doubt, seen in measurement space",
-            "The prior covariance carried through the measurement map, so that it can be compared with the sensor's own noise.")
-        .explain(r"R_k", "The measurement noise covariance at step k",
-            "How noisy the sensor is at step k.")
-        .explain(r"\tilde y_k^\top S_k^{-1}\tilde y_k", "The normalised squared surprise",
-            "The disagreement divided by the yardstick the filter itself supplies, squared. If the model is right it averages m.")
+            .text(" is a definition that arrives with an experiment attached, which is why consistency testing is not an optional extra: it is the only thing standing between \"an uncertainty\" and \"a number someone made up\", and the closing section points it at the two numbers you have to choose."))
         .para(|p| p
             .text("Bedrock: this chain stops at a definition. ")
             .math(r"P")
@@ -633,43 +621,47 @@ fn why_a_variance(b: LessonBuilder) -> LessonBuilder {
         .explain(r"b\surd k", "The growth that actually happens",
             "How far the error that really occurs has grown after k steps of typical error b: the square root of k, not k.")
         .para(|p| p
-            .text("Average absolute error does not combine at all. For independent ")
-            .math(r"X,Y\sim\mathcal{N}(0,1)")
-            .text(" we have ")
-            .math(r"\mathbb{E}|X| = \mathbb{E}|Y| = \surd(2/\pi) \approx 0.7979")
-            .text(", and yet ")
-            .math(r"\mathbb{E}|X+Y| \approx 1.1291")
-            .text(", not ")
-            .math(r"1.5960")
-            .text(" (verified on ")
-            .math(r"2\times10^6")
-            .text(" draws). And notice which number ")
-            .math(r"1.1291")
-            .text(" is: it is ")
-            .math(r"\surd 2 \times 0.7979")
-            .text(". Even when you insist on writing your uncertainty in absolute units, it combines in quadrature. The square is doing the work whether or not you write it down."))
-        .explain(r"\mathcal{N}(0,1)", "The standard normal distribution",
-            "A Gaussian centred on zero with a variance of one.")
+            .text("Average absolute error does not combine at all, and two coins show it with no calculus whatever. Let ")
+            .math(r"X")
+            .text(" and ")
+            .math(r"Y")
+            .text(" each be ")
+            .math(r"+1")
+            .text(" or ")
+            .math(r"-1")
+            .text(" on a fair flip. Each lands one unit from zero every single time, so ")
+            .math(r"\mathbb{E}|X| = \mathbb{E}|Y| = 1")
+            .text(". Their sum is ")
+            .math(r"+2, 0, 0, -2")
+            .text(" with equal chance, so the sum's average absolute size is ")
+            .math(r"1")
+            .text(" — the same as either one alone, not the ")
+            .math(r"2")
+            .text(" you would get by adding. Now the squares: each has average square ")
+            .math(r"1")
+            .text(", and the sum has average square ")
+            .math(r"\frac14(4+0+0+4) = 2")
+            .text(", which is exactly ")
+            .math(r"1+1")
+            .text(". The absolute sizes do not add and the squares do, exactly."))
+        .explain(r"+1", "Plus one",
+            "One of the two values a fair coin takes in this example.")
+        .explain(r"-1", "Minus one",
+            "The other value the coin takes.")
         .explain(r"\mathbb{E}|X|", "The average absolute size of X",
-            "How far X lands from zero on average, sign discarded.")
+            "How far X lands from zero on average, sign discarded. For this coin it is exactly one, every time.")
         .explain(r"\mathbb{E}|Y|", "The average absolute size of Y",
-            "How far Y lands from zero on average, sign discarded.")
-        .explain(r"\surd(2/\pi)", "The square root of two over pi",
-            "What the average absolute size of a standard normal comes to: about 0.7979.")
-        .explain(r"0.7979", "The average absolute size of a standard normal",
-            "How far a standard normal lands from zero on average.")
-        .explain(r"\mathbb{E}|X", "The average absolute size of X plus Y",
-            "How far X plus Y lands from zero on average, sign discarded.")
+            "How far Y lands from zero on average, sign discarded. For this coin it is exactly one, every time.")
+        .explain(r"+2", "Plus two",
+            "The largest of the four equally likely sums the two coins produce.")
+        .explain(r"0, 0, -2", "The other three sums",
+            "Nothing, nothing, and minus two: the rest of what the two coins come to when added.")
+        .explain(r"\frac14", "A quarter of what follows",
+            "One share in four, because the four sums are equally likely.")
+        .explain(r"(4+0+0+4)", "The four sums, squared and added",
+            "Four, nothing, nothing and four: each of the four sums squared, then added.")
         .explain(r"Y|", "The size of X plus Y",
             "How far X plus Y lands from zero, sign discarded.")
-        .explain(r"1.1291", "What the sum's average absolute size actually is",
-            "The measured answer for the sum of two standard normals, and not the two averages added.")
-        .explain(r"1.5960", "What adding the two would have given",
-            "The two average absolute sizes added together — which is not the answer, because absolute error does not combine.")
-        .explain(r"10^6", "A million",
-            "Ten to the sixth. The check was run on two million draws.")
-        .explain(r"\surd 2 \times 0.7979", "The square root of two, times the single average",
-            "What 1.1291 turns out to be: absolute error combines in quadrature even when written in absolute units.")
         .para(|p| p
             .text("Why does variance add when other measures do not? Because it is the expectation of a square, and the square of a sum expands with exactly one cross-term. Writing ")
             .math(r"X'=X-\mu_X")
@@ -710,21 +702,64 @@ fn why_a_variance(b: LessonBuilder) -> LessonBuilder {
         .explain(r"|Y|", "The absolute size of Y",
             "How far Y lands from zero, sign discarded.")
         .para(|p| p
-            .text("The same expansion performed on vectors, with outer products in place of squares, is the identity ")
-            .math(r"\mathrm{Cov}(Ax)=A\Sigma A^\top")
-            .text(". Every sandwich in this subject — ")
-            .math(r"FPF^\top")
-            .text(", ")
-            .math(r"HPH^\top")
-            .text(", ")
-            .math(r"KRK^\top")
-            .text(" — is that one bracket-expansion wearing matrices. It is the single most reused expression in the whole field, and you have just derived it."))
+            .text("Hold on to that expansion. Done with vectors instead of single numbers it becomes the single most reused expression in the whole field, and the Interlude collects it the moment the notation exists to write it in."))
         .explain(r"\mathrm{Cov}(Ax)", "The covariance of a linearly mapped quantity",
             "How spread out x becomes once the linear map A has been applied to it.")
         .explain(r"HPH^\top", "Your own doubt, seen through the measurement map",
             "The state covariance carried into measurement space by H, so that it can be compared with the sensor's noise.")
         .explain(r"KRK^\top", "The sensor's noise, carried into the state",
             "The measurement noise R brought back into state space by the gain K.")
+        .para(|p| p
+            .text("One more why, and it settles the question rather than illustrating it. So far variance has survived where the alternatives did not — but could anything else have survived? Ask for any sign-blind measure of error size ")
+            .math(r"\varphi")
+            .text(" with the one property the filter needs: that it add over independent centred quantities. Test it on the two coins again, but with sizes ")
+            .math(r"a")
+            .text(" and ")
+            .math(r"b")
+            .text(". The sum takes ")
+            .math(r"a+b")
+            .text(" and ")
+            .math(r"a-b")
+            .text(", each twice by symmetry, so the demand reads"))
+        .explain(r"\varphi", "Any candidate measure of error size",
+            "A stand-in for whatever you might use instead of the variance: even, continuous, and zero at zero.")
+        .explain(r"a+b", "The larger of the two sums",
+            "What the two coins come to when they agree in sign.")
+        .explain(r"a-b", "The smaller of the two sums",
+            "What the two coins come to when they disagree in sign.")
+        .display(r"\varphi(a+b) + \varphi(a-b) = 2\varphi(a) + 2\varphi(b)")
+        .explain(r"\varphi(a+b)", "The candidate applied to the larger sum",
+            "Whatever the candidate measure says about the two coins agreeing.")
+        .explain(r"\varphi(a-b)", "The candidate applied to the smaller sum",
+            "Whatever the candidate measure says about the two coins disagreeing.")
+        .explain(r"2\varphi(a)", "Twice the candidate on the first size",
+            "What additivity demands the first coin contribute.")
+        .explain(r"2\varphi(b)", "Twice the candidate on the second size",
+            "What additivity demands the second coin contribute.")
+        .para(|p| p
+            .text("for every ")
+            .math(r"a")
+            .text(" and ")
+            .math(r"b")
+            .text(". The continuous solutions of that equation are ")
+            .math(r"\varphi(t) = ct^2")
+            .text(" and nothing else. Check the loser on the spot: at ")
+            .math(r"a=b=1")
+            .text(" the absolute value gives ")
+            .math(r"2 + 0 = 2")
+            .text(" against a demanded ")
+            .math(r"4")
+            .text(". It fails, and so does every other candidate."))
+        .explain(r"\varphi(t)", "The candidate, at a size t",
+            "Whatever the candidate measure says about an error of size t.")
+        .explain(r"ct^2", "A constant times the square",
+            "The only continuous solutions of that equation: the square, up to the units you choose.")
+        .explain(r"a=b=1", "Both sizes set to one",
+            "The simplest case to test a candidate on.")
+        .explain(r"2 + 0 = 2", "What absolute value gives",
+            "Two, against the four additivity demands. Absolute value fails the test.")
+        .para(|p| p
+            .text("Bedrock: a definition, plus a functional equation with one solution. Variance is defined as the expectation of a square; and the square is not one additive measure of spread among several — it is the only one there is, up to units. There is nothing underneath \"these are all the solutions of that equation\" to ask why of. It is worth seeing what this does not say, though: nothing here made the square good. It made the square the only additive thing, which is the single property the filter's two operations require. Whether additive error is what you actually care about is the separate question the next section takes up."))
 }
 
 fn why_square_the_error(b: LessonBuilder) -> LessonBuilder {
@@ -770,29 +805,23 @@ fn why_square_the_error(b: LessonBuilder) -> LessonBuilder {
             .math(r"Y")
             .text(" are dependent — so the mean of a predicted state is computable from the means of its ingredients, and ")
             .math(r"\hat x^- = F\hat x")
-            .text(" is legitimate. Medians do not add. Let ")
-            .math(r"X,Y")
-            .text(" be independent, each taking ")
+            .text(" is legitimate. Medians do not add. Take two independent quantities each taking ")
             .math(r"0")
-            .text(" with probability ")
-            .math(r"0.4")
-            .text(" and ")
+            .text(" four times in ten and ")
             .math(r"1")
-            .text(" with probability ")
-            .math(r"0.6")
-            .text(". Both medians equal ")
+            .text(" six times in ten. Both medians are ")
             .math(r"1")
-            .text(". But ")
-            .math(r"X+Y")
-            .text(" has law ")
-            .math(r"(0.16,\ 0.48,\ 0.36)")
-            .text(" on ")
-            .math(r"\{0,1,2\}")
-            .text(", with median ")
-            .math(r"1")
-            .text(" — not ")
+            .text(", so adding the medians would predict ")
             .math(r"2")
-            .text(" (verified)."))
+            .text(" — but the sum lands on ")
+            .math(r"0")
+            .text(" sixteen times in a hundred, on ")
+            .math(r"1")
+            .text(" forty-eight times, and on ")
+            .math(r"2")
+            .text(" thirty-six times, so its median is ")
+            .math(r"1")
+            .text(" (verified). The median of a sum is not the sum of the medians, and there is nothing for a recursion to recurse on."))
         .explain(r"\mathbb{E}[X+Y]", "The mean of a sum",
             "The average of X and Y added together. It is the two means added, whether or not X and Y are dependent.")
         .explain(r"\mathbb{E}[Y]", "The mean of Y",
@@ -892,7 +921,7 @@ fn idea_one_at_work(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("Now the question. You release a drop, and after one second the cloud is roughly ")
             .math(r"\pm1")
-            .text(" mm across. Ten seconds later, how wide is it?"))
+            .text(" mm either side of centre. At ten seconds, how wide is it?"))
         .explain(r"\pm1", "Give or take one",
             "How wide the ink cloud is after one second, in millimetres.")
         .para(|p| p
@@ -999,22 +1028,6 @@ fn idea_one_at_work(b: LessonBuilder) -> LessonBuilder {
         .display(r"w^\star = \frac{\mu}{\gamma\sigma^2}")
         .explain(r"\frac{\mu}{\gamma\sigma^2}", "The edge over the risk",
             "The expected edge divided by risk aversion times variance: the position size the rule gives.")
-        .para(|p| p
-            .text("Toy numbers at ")
-            .math(r"\gamma=1")
-            .text(": an expected edge of ")
-            .math(r"\mu=4\%")
-            .text(" with ")
-            .math(r"\sigma=20\%")
-            .text(" (variance ")
-            .math(r"0.04")
-            .text(") gives ")
-            .math(r"w^\star = 0.04/0.04 = 1")
-            .text(", a full-size position. Now suppose you are twice as unsure — same ")
-            .math(r"4\%")
-            .text(" edge, but ")
-            .math(r"\sigma=40\%")
-            .text(". How much smaller should the position be?"))
         .explain(r"4\%", "Four per cent",
             "The expected edge on the trade.")
         .explain(r"20\%", "Twenty per cent",
@@ -1028,7 +1041,7 @@ fn idea_one_at_work(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("Two analysts pitch the same trade on the same morning. Both mark the stock at $104 against a $100 price, so both claim an edge of ")
             .math(r"\mu = 4\%")
-            .text(" — identical to the decimal. The first analyst's process swings about ")
+            .text(" — identical to the decimal. The committee is about to fund them equally when someone asks the only question that separates them: and how wrong could you be? The first analyst's process swings about ")
             .math(r"\sigma = 20\%")
             .text(" a year; the second's is twice as loose, ")
             .math(r"\sigma = 40\%")
@@ -1068,25 +1081,7 @@ fn idea_one_at_work(b: LessonBuilder) -> LessonBuilder {
         .explain(r"0.16", "Sixteen hundredths",
             "The variance a forty per cent standard deviation comes to: four times the twenty per cent one.")
         .para(|p| p
-            .text("Most people say half. It is a quarter: ")
-            .math(r"0.04/0.16 = 0.25")
-            .text(". The mean chooses the direction; the variance alone chooses the size, and it does so through its square."))
-        .para(|p| p
-            .text("A story to fix it. Two analysts pitch the same trade on the same morning. Both say the stock is worth $104 against a $100 price — a ")
-            .math(r"4\%")
-            .text(" edge, identical to the decimal. The committee is about to fund them equally when someone asks the only question that separates them: and how wrong could you be? The first analyst's process swings about ")
-            .math(r"20\%")
-            .text(" a year; the second's is twice as loose, ")
-            .math(r"40\%")
-            .text(". At ")
-            .math(r"\gamma=1")
-            .text(", ")
-            .math(r"w^\star=\mu/(\gamma\sigma^2)")
-            .text(" gives the first ")
-            .math(r"0.04/0.04 = 1")
-            .text(", a full position, and the second ")
-            .math(r"0.04/0.16 = 0.25")
-            .text(" — a quarter, because the doubt enters squared. Identical forecast, four times the capital. The forecast chose the direction and decided nothing else; the second number chose the size."))
+            .text("Identical forecast, four times the capital. Most people say half. The forecast chose the direction and decided nothing else; the second number chose the size, and it did so through its square."))
 }
 
 fn idea_two(b: LessonBuilder) -> LessonBuilder {
@@ -1151,7 +1146,56 @@ fn idea_two(b: LessonBuilder) -> LessonBuilder {
 fn why_one_over_sigma_squared(b: LessonBuilder) -> LessonBuilder {
     b.heading("Going deeper — why 1/σ² and nothing else")
         .para(|p| p
-            .text("Assume no distribution at all. Demand only two things of a combined estimate ")
+            .text("Start with the answer, because it can be told with no algebra at all. Two friends both tell you the film starts at 8. One has checked the listing three times; the other five. Do you weight them 50/50? You weight the sightings — ")
+            .math(r"3/8")
+            .text(" and ")
+            .math(r"5/8")
+            .text(" — and you now hold eight sightings' worth of certainty, more than either friend had alone."))
+        .explain(r"3/8", "Three eighths",
+            "The weight the friend with three sightings earns. It is a weighted average: each source gets a share of the vote, the shares add to one, and you add up value times share.")
+        .explain(r"5/8", "Five eighths",
+            "The weight the friend with five sightings earns.")
+        .para(|p| p
+            .text("Here is that in symbols. Suppose each source is itself the average of ")
+            .math(r"n_i")
+            .text(" raw readings, each reading with variance ")
+            .math(r"\tau^2")
+            .text(". Averaging ")
+            .math(r"n")
+            .text(" things divides their variance by ")
+            .math(r"n")
+            .text(", so ")
+            .math(r"\sigma_i^2 = \tau^2/n_i")
+            .text(", and therefore"))
+        .explain(r"n_i", "The number of readings behind source i",
+            "How many raw readings source i is the average of.")
+        .explain(r"\tau^2", "The variance of one raw reading",
+            "How noisy a single reading is.")
+        .explain(r"\sigma_i^2", "Source i's variance",
+            "How wrong source i is: the variance of one reading, shared out over the readings it averaged.")
+        .explain(r"\tau^2/n_i", "One reading's variance, divided by the count",
+            "What averaging n readings does to their noise.")
+        .display(r"\frac{1}{\sigma_i^2} = \frac{n_i}{\tau^2}")
+        .explain(r"\frac{n_i}{\tau^2}", "The count, in units of one over the reading variance",
+            "Source i's precision, which is literally the number of readings it holds.")
+        .para(|p| p
+            .text("— precision is the headcount, measured in units of ")
+            .math(r"1/\tau^2")
+            .text(". Precisions add because counts add: three readings pooled with five is eight readings, and no other answer is conceivable. This also shows immediately why variance could never be the additive quantity — averaging more data must make you more certain, and only the reciprocal grows with ")
+            .math(r"n")
+            .text("."))
+        .explain(r"1/\tau^2", "One over the reading variance",
+            "The precision of a single raw reading: the unit the counts are measured in.")
+        .para(|p| p
+            .text("But not every source is the average of a whole number of readings. Run it backwards: given any source with variance ")
+            .math(r"\sigma_i^2")
+            .text(", define its headcount as ")
+            .math(r"n_i = \tau^2/\sigma_i^2")
+            .text(" — how many readings it is worth. Now every source has a count, fractional counts allowed, and the counting picture is exact for all of them rather than for a special case. A prior \"worth three observations\" is not a metaphor; it is a number you can compute. That is what lets the argument below drop the readings entirely."))
+        .explain(r"\tau^2/\sigma_i^2", "A source's headcount, defined backwards",
+            "How many readings a source is worth: the reading variance divided by the source's own. Fractional counts allowed.")
+        .para(|p| p
+            .text("Nothing above assumed a distribution, but it did assume a story about readings. Here is the same answer with no story at all — only \"uncorrelated\" and \"finite variances\". Assume no distribution whatever. Demand only two things of a combined estimate ")
             .math(r"\hat\mu = w_1\mu_1 + w_2\mu_2")
             .text(": that it be unbiased whatever the true value is, and that its error variance be as small as possible."))
         .explain(r"w_1\mu_1", "The first estimate, weighted",
@@ -1171,7 +1215,23 @@ fn why_one_over_sigma_squared(b: LessonBuilder) -> LessonBuilder {
             .math(r"\theta")
             .text(". With uncorrelated errors, ")
             .math(r"\mathrm{Var}(\hat\mu) = w_1^2\sigma_1^2 + w_2^2\sigma_2^2")
-            .text(". Cauchy–Schwarz then settles the whole question in one line:"))
+            .text(". One inequality then settles the whole question, and it is worth stating before it is used: ")
+            .math(r"\left(\sum_i a_ib_i\right)^2 \le \left(\sum_i a_i^2\right)\left(\sum_i b_i^2\right)")
+            .text(". That is Cauchy–Schwarz — two lists multiplied together and added cannot beat the two lists squared and added — with equality exactly when one list is a constant multiple of the other. You will meet it again in the Interlude wearing a different hat: \"a correlation is never bigger than one\" is this same inequality. Put ")
+            .math(r"a_i = w_i\sigma_i")
+            .text(" and ")
+            .math(r"b_i = 1/\sigma_i")
+            .text(":"))
+        .explain(r"\left(\sum_i a_ib_i\right)^2", "Two lists multiplied together and added, then squared",
+            "The left-hand side of Cauchy-Schwarz: pair the lists up, multiply, add, square.")
+        .explain(r"\left(\sum_i a_i^2\right)", "The first list, squared and added",
+            "Each entry of the first list squared, then summed.")
+        .explain(r"\left(\sum_i b_i^2\right)", "The second list, squared and added",
+            "Each entry of the second list squared, then summed.")
+        .explain(r"a_i", "The first list",
+            "Each source's weight times its spread.")
+        .explain(r"b_i", "The second list",
+            "One over each source's spread.")
         .explain(r"\mathbb{E}[\hat\mu]", "The average of the combined estimate",
             "Where the blend lands on average. Unbiasedness demands that it be the true value itself.")
         .explain(r"(w_1+w_2)", "The weights added together",
@@ -1279,92 +1339,17 @@ fn why_one_over_sigma_squared(b: LessonBuilder) -> LessonBuilder {
         .explain(r"0.320123", "The combined variance in the checked case",
             "What the two variances come to once combined, and what each source's weight times its own variance equals.")
         .para(|p| p
-            .text("One more level. Why does the trade-off run on squares in the first place? Because variance is the spread measure with the two properties the problem needs, and they are the same two properties that make the objective a parabola with a unique minimum: it adds across uncorrelated sources, and it scales as ")
-            .math(r"a^2")
-            .text(" under ")
-            .math(r"X\mapsto aX")
-            .text(". Additivity makes the two sources' contributions separable, so that there is a trade-off at all rather than one tangled expression; quadratic scaling makes the objective convex in ")
-            .math(r"w")
-            .text(" with a single interior optimum. A measure lacking additivity — say a quantile range — leaves the combined spread depending on the sources jointly, and there is then no weight-by-weight balance to strike."))
-        .explain(r"a^2", "The square of the scale",
-            "What multiplying a quantity by a does to its variance.")
-        .explain(r"X\mapsto aX", "Scaling X by a",
-            "The linear map that multiplies a quantity by a.")
+            .text("Why does the trade-off run on squares in the first place? Because variance has the two properties the problem needs, and they are the same two that make the objective a parabola with a unique minimum: it adds across uncorrelated sources, so the two contributions are separable and there is a trade-off at all rather than one tangled expression; and it scales by the square of a scale, which makes the objective convex with a single interior optimum. A measure lacking additivity — a quantile range, say — leaves the combined spread depending on the sources jointly, and there is then no weight-by-weight balance to strike."))
         .para(|p| p
-            .text("And this is not an artefact of having chosen squared-error loss. When the two errors are Gaussian, the blend ")
-            .math(r"we_1 + (1-w)e_2")
-            .text(" is itself Gaussian with mean ")
-            .math(r"0")
-            .text(" and scale ")
-            .math(r"s(w)")
-            .text(", so its shape is fixed and only its scale moves with ")
-            .math(r"w")
-            .text(". Hence every loss that increases with ")
-            .math(r"|\mathrm{error}|")
-            .text(" — absolute error, any quantile width, any tail probability — is minimised at the very same ")
-            .math(r"w")
-            .text(". The inverse-variance weight survives changing the definition of \"best\"."))
-        .explain(r"we_1", "The first error, weighted",
-            "The first source's error carrying the share w of the blend.")
-        .explain(r"e_2", "The second source's error",
-            "How wrong the second source is on a given occasion.")
-        .explain(r"s(w)", "The blend's scale",
-            "How wide the blended error is, as a function of the weight. Only this moves with w; the shape does not.")
-        .explain(r"|\mathrm{error}|", "The size of the error",
-            "How far the blend lands from the truth, sign discarded.")
+            .text("And this is not an artefact of having chosen squared-error loss. When the two errors are Gaussian the blend is itself Gaussian and centred, so its shape is fixed and only its width moves with the weight. Hence every loss that increases with the size of the error — absolute error, any quantile width, any tail probability — is minimised at the very same weight. The inverse-variance weight survives changing the definition of \"best\"."))
         .para(|p| p
-            .text("Why do variances add for uncorrelated sources? Expand the square and use linearity of expectation: for zero-mean errors, ")
-            .math(r"\mathbb{E}[(ae_1+be_2)^2] = a^2\mathbb{E}[e_1^2] + b^2\mathbb{E}[e_2^2] + 2ab\,\mathbb{E}[e_1e_2]")
-            .text(", and the cross-term dies because ")
-            .math(r"\mathbb{E}[e_1e_2] = \mathbb{E}[e_1]\mathbb{E}[e_2] = 0")
-            .text(" for independent — indeed merely uncorrelated — zero-mean errors. Everything here is the identity ")
-            .math(r"(u+v)^2 = u^2+2uv+v^2")
-            .text(" plus the fact that expectation is an integral and integration is linear."))
-        .explain(r"\mathbb{E}[(ae_1+be_2)^2]", "The variance of a weighted sum of errors",
-            "The average squared size of the two errors, each scaled, then added.")
-        .explain(r"a^2\mathbb{E}[e_1^2]", "The first error's contribution",
-            "The first error's variance, scaled by the square of its coefficient.")
-        .explain(r"b^2\mathbb{E}[e_2^2]", "The second error's contribution",
-            "The second error's variance, scaled by the square of its coefficient.")
-        .explain(r"2ab\,\mathbb{E}[e_1e_2]", "The cross-term",
-            "The term that carries how the two errors move together. It dies when they are uncorrelated.")
-        .explain(r"\mathbb{E}[e_1e_2]", "The average product of the two errors",
-            "How the two errors move together. It is zero for uncorrelated zero-mean errors.")
-        .explain(r"\mathbb{E}[e_1]\mathbb{E}[e_2]", "The two averages, multiplied",
-            "What the average product becomes when the errors are independent: each averages zero, so the product does too.")
-        .explain(r"(u+v)^2", "The square of a sum",
-            "The bracket the whole argument rests on.")
-        .explain(r"u^2", "u squared",
-            "The first of the two squares the expansion produces.")
-        .explain(r"2uv", "Twice the cross-term",
-            "The one cross-term the expansion of a squared sum produces.")
-        .explain(r"v^2", "v squared",
-            "The second of the two squares the expansion produces.")
+            .text("All of that runs on variances adding for uncorrelated sources, which is the bracket-expansion of the previous section with ")
+            .math(r"a")
+            .text(" and ")
+            .math(r"b")
+            .text(" in front of the two errors. Note where it fails, because it is the single most expensive mistake in applied filtering: correlated sources keep the cross term. That is exactly why fusing dependent sensors is not \"add the precisions\", and why double-counting the same evidence twice makes a filter overconfident."))
         .para(|p| p
-            .text("Note where this fails, because it is the single most expensive mistake in applied filtering: correlated sources keep the cross term. That is exactly why fusing dependent sensors is not \"add the precisions\", and why double-counting the same evidence twice makes a filter overconfident."))
-        .para(|p| p
-            .text("Finally, the punchline — the version of \"precisions add\" a beginner could have known before any of this. Suppose each source is itself the average of ")
-            .math(r"n_i")
-            .text(" raw readings, each reading with variance ")
-            .math(r"\tau^2")
-            .text(". Then ")
-            .math(r"\sigma_i^2 = \tau^2/n_i")
-            .text(", so the precision is"))
-        .explain(r"n_i", "The number of readings behind source i",
-            "How many raw readings source i is the average of.")
-        .explain(r"\tau^2", "The variance of one raw reading",
-            "How noisy a single reading is.")
-        .explain(r"\sigma_i^2", "Source i's variance",
-            "How wrong source i is: the variance of one reading, shared out over the readings it averaged.")
-        .explain(r"\tau^2/n_i", "One reading's variance, divided by the count",
-            "What averaging n readings does to their noise.")
-        .display(r"\frac{1}{\sigma_i^2} = \frac{n_i}{\tau^2}")
-        .explain(r"\frac{n_i}{\tau^2}", "The count, in units of one over the reading variance",
-            "Source i's precision, which is literally the number of readings it holds.")
-        .para(|p| p
-            .text("— literally the number of readings, measured in units of ")
-            .math(r"1/\tau^2")
-            .text(". Feed those into the inverse-variance formula and it collapses to the plain average of all the readings: weights ")
+            .text("And the two routes agree, as they must. Feed the counts into the inverse-variance formula and it collapses to the plain average of all the readings: weights ")
             .math(r"n_i/(n_1+n_2)")
             .text(", combined precision ")
             .math(r"(n_1+n_2)/\tau^2")
@@ -1375,8 +1360,6 @@ fn why_one_over_sigma_squared(b: LessonBuilder) -> LessonBuilder {
             .text(" gives weight ")
             .math(r"0.375 = 3/8")
             .text(" both ways)."))
-        .explain(r"1/\tau^2", "One over the reading variance",
-            "The precision of a single raw reading: the unit the counts are measured in.")
         .explain(r"n_i/", "Source i's readings, divided by what follows",
             "How many readings source i holds, about to be divided by how many there are altogether.")
         .explain(r"(n_1+n_2)", "All the readings",
@@ -1390,31 +1373,15 @@ fn why_one_over_sigma_squared(b: LessonBuilder) -> LessonBuilder {
         .explain(r"0.375", "Three eighths, in decimals",
             "The first source's weight when it holds three readings and the second holds five.")
         .para(|p| p
-            .text("So precisions add because counts add: three readings pooled with five is eight readings, and no other answer is conceivable. This also shows immediately why variance could never be the additive quantity — averaging more data must make you more certain, and only the reciprocal grows with ")
-            .math(r"n")
-            .text("."))
+            .text("Where the counting picture breaks down: both friends read the same listing. Then the sightings are not independent, the counts do not add, and pooling them makes you overconfident — which is the same cross term coming back the moment a filter is fed a re-derived version of its own output."))
         .para(|p| p
-            .text("An analogy, at the moment it lands. Two friends both tell you the film starts at 8. One has checked the listing three times; the other five. Do you weight them 50/50? You weight the sightings: ")
-            .math(r"3/8")
-            .text(" and ")
-            .math(r"5/8")
-            .text(" — and you now hold eight sightings' worth of certainty, more than either friend had alone. That is the whole of \"precisions add\", and notice that no probability was used anywhere."))
-        .explain(r"3/8", "Three eighths",
-            "The weight the friend with three sightings earns.")
-        .explain(r"5/8", "Five eighths",
-            "The weight the friend with five sightings earns.")
-        .para(|p| p
-            .text("Where it breaks down: both friends read the same listing. Then the sightings are not independent, the counts do not add, and pooling them makes you overconfident — which is the same cross term coming back the moment a filter is fed a re-derived version of its own output."))
-        .para(|p| p
-            .text("Bedrock: this chain stops at a definition, reached by counting. Pooling ")
-            .math(r"n_1")
-            .text(" observations with ")
-            .math(r"n_2")
-            .text(" observations is having ")
-            .math(r"n_1+n_2")
-            .text(" observations — that is what pooling means, not a fact about it — and the additivity of counts is not a further claim requiring justification."))
-        .explain(r"n_1+n_2", "The pooled count",
-            "The two sources' readings added together, which is what pooling them means.")
+            .text("Bedrock: a definition and the order of the real numbers — and they are the same two the closure argument reaches later. The definition: variance is the average of a square, so the combined error variance is ")
+            .math(r"w^2\sigma_1^2 + (1-w)^2\sigma_2^2")
+            .text(" — a bracket expanded, with the cross-term zero. The order: ")
+            .math(r"t^2\ge0")
+            .text(" for every real ")
+            .math(r"t")
+            .text(", so that expression is a parabola opening upward and has exactly one lowest point. Everything else in this section is bookkeeping on those two. Counting is not the bedrock; counting is the picture that shows the answer was never going to be anything else."))
 }
 
 fn the_mechanism_of_multiplying_gaussians(b: LessonBuilder) -> LessonBuilder {
@@ -1429,7 +1396,7 @@ fn the_mechanism_of_multiplying_gaussians(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("1. ")
             .math(r"e^u e^v = e^{u+v}")
-            .text(", so multiplying densities adds exponents."))
+            .text(", so multiplying densities adds exponents. That law is built from scratch in the exponents lesson in this series, where an exponent is a headcount of factors and adding the counts is all multiplying does."))
         .explain(r"e^u e^v", "Two exponentials, multiplied",
             "The exponential of u times the exponential of v.")
         .explain(r"e^{u+v}", "The exponential of the sum",
@@ -1473,37 +1440,15 @@ fn the_mechanism_of_multiplying_gaussians(b: LessonBuilder) -> LessonBuilder {
         .explain(r"\frac{\mu_2}{\sigma_2^2}", "The second mean, weighted by its precision",
             "The second source's mean divided by its variance.")
         .para(|p| p
-            .text("Completing the square is then not a derivation but a reading-off: any ")
-            .math(r"-\frac12(ax^2 - 2bx)")
-            .text(" equals ")
-            .math(r"-\frac{a}{2}\left(x-\frac{b}{a}\right)^2 + \mathrm{const}")
-            .text(", so the product is ")
-            .math(r"\mathcal{N}(b/a,\ 1/a)")
-            .text(" — mean ")
+            .text("Completing the square is then not a derivation but a reading-off: a quadratic rewritten around its own peak hands you the mean as the linear coefficient over the quadratic one, and the variance as one over the quadratic one. So the product is the Gaussian with mean ")
             .math(r"\frac{\mu_1/\sigma_1^2 + \mu_2/\sigma_2^2}{1/\sigma_1^2 + 1/\sigma_2^2}")
-            .text(", variance ")
+            .text(" and variance ")
             .math(r"\left(\frac{1}{\sigma_1^2}+\frac{1}{\sigma_2^2}\right)^{-1}")
             .text(". Nothing is optimised anywhere. The entire Bayesian answer is bookkeeping on two coefficients. (Verified by numerical integration of the actual product of two densities: mean ")
             .math(r"4.244923")
             .text(", variance ")
             .math(r"0.3201231")
             .text(", matching both closed forms and matching the \"old belief plus a fraction of the disagreement\" form to twelve digits.)"))
-        .explain(r"(ax^2 - 2bx)", "A quadratic in its raw form",
-            "Any exponent written as a quadratic with coefficients a and b, before the square is completed.")
-        .explain(r"-ax^2", "The quadratic term of the log-density",
-            "The x-squared part, whose coefficient is the precision in disguise.")
-        .explain(r"-\frac{a}{2}\left(x-\frac{b}{a}\right)^2", "The same quadratic, square completed",
-            "The exponent rewritten around its own peak, which is at b over a.")
-        .explain(r"\frac{b}{a}", "The peak of the quadratic",
-            "Where the exponent is largest: the mean of the resulting Gaussian.")
-        .explain(r"\mathrm{const}", "A constant",
-            "The leftover that does not depend on x, and so is absorbed by normalisation.")
-        .explain(r"\mathcal{N}(b/a,\ 1/a)", "The Gaussian the product comes to",
-            "A Gaussian with mean b over a and variance one over a: read straight off the two coefficients.")
-        .explain(r"b/a", "The product's mean",
-            "The linear coefficient over the quadratic one.")
-        .explain(r"1/a", "The product's variance",
-            "One over the quadratic coefficient.")
         .explain(r"\frac{\mu_1/\sigma_1^2 + \mu_2/\sigma_2^2}{1/\sigma_1^2 + 1/\sigma_2^2}", "The precision-weighted mean",
             "Each mean weighted by its own precision, divided by the precisions added together.")
         .explain(r"\mu_1/\sigma_1^2", "The first mean, weighted by its precision",
@@ -1564,6 +1509,8 @@ fn the_mechanism_of_multiplying_gaussians(b: LessonBuilder) -> LessonBuilder {
             .text("."))
         .explain(r"\log p(x)", "The log-density",
             "The logarithm of the density. For a Gaussian it is a quadratic, and nothing else is.")
+        .explain(r"-ax^2", "The quadratic term of the log-density",
+            "The x-squared part, whose coefficient is the precision in disguise.")
         .explain(r"bx", "The linear term of the log-density",
             "The x part, which places the peak.")
         .explain(r"c", "The constant term of the log-density",
@@ -1577,49 +1524,7 @@ fn the_mechanism_of_multiplying_gaussians(b: LessonBuilder) -> LessonBuilder {
         .explain(r"\frac{1}{2a}", "The variance, from the coefficients",
             "One over twice the quadratic coefficient.")
         .para(|p| p
-            .text("So the Gaussians are precisely the densities whose logarithm is a quadratic — and a quadratic is precisely three coefficients, one of which is spent on normalisation. A Gaussian is two free numbers. Remember that sentence; five later results are it in disguise."))
-        .para(|p| p
-            .text("There is a general version worth naming even at this stage. A density written as ")
-            .math(r"\exp\left(\eta_1T_1(x)+\eta_2T_2(x)-A(\eta)\right)")
-            .text(" has its parameters ")
-            .math(r"\eta")
-            .text(" add when densities multiply, and for the Gaussian the sufficient statistic is ")
-            .math(r"T(x)=(x,x^2)")
-            .text(" with natural parameters ")
-            .math(r"\eta_1 = \mu/\sigma^2")
-            .text(" and ")
-            .math(r"\eta_2 = -1/(2\sigma^2)")
-            .text(". Those two coordinates are exactly ")
-            .math(r"P^{-1}\hat x")
-            .text(" and ")
-            .math(r"P^{-1}")
-            .text(". The information filter is not a clever rearrangement of the Kalman filter; it is the Gaussian written in the coordinates in which its own update is literally vector addition."))
-        .explain(r"\exp\left(\eta_1T_1(x)+\eta_2T_2(x)-A(\eta)\right)", "An exponential-family density",
-            "The general shape whose parameters add when two densities are multiplied.")
-        .explain(r"\eta_1T_1(x)", "The first natural parameter, against its statistic",
-            "One coordinate of the density's exponent: a parameter multiplying a function of x.")
-        .explain(r"\eta_2T_2(x)", "The second natural parameter, against its statistic",
-            "The other coordinate of the density's exponent.")
-        .explain(r"A(\eta)", "The normaliser",
-            "The term that makes the density integrate to one.")
-        .explain(r"T(x)=(x,x^2)", "The Gaussian's sufficient statistic",
-            "x and x squared: everything about a sample a Gaussian ever reads.")
-        .explain(r"T(x)", "The sufficient statistic",
-            "The function of x that the density reads.")
-        .explain(r"(x,x^2)", "x and x squared",
-            "The two functions of x that a Gaussian reads, and nothing else.")
-        .explain(r"\eta_1", "The first natural parameter",
-            "For a Gaussian, the mean divided by the variance.")
-        .explain(r"\mu/\sigma^2", "The mean, weighted by the precision",
-            "The Gaussian's first natural coordinate.")
-        .explain(r"\eta_2", "The second natural parameter",
-            "For a Gaussian, minus one over twice the variance.")
-        .explain(r"-1/(2\sigma^2)", "Minus half the precision",
-            "Minus one over twice the variance: the Gaussian's second natural coordinate.")
-        .explain(r"P^{-1}\hat x", "The information-form estimate",
-            "The estimate weighted by the precision matrix: the first of the two coordinates in which the update is vector addition.")
-        .explain(r"P^{-1}", "The information matrix",
-            "The inverse of the covariance: precision in matrix form.")
+            .text("So the Gaussians are precisely the densities whose logarithm is a quadratic — and a quadratic is precisely three coefficients, one of which is spent on normalisation. A Gaussian is two free numbers. Remember that sentence; nearly everything this lesson later says about the Gaussian is it in disguise."))
         .para(|p| p
             .text("Why should the ")
             .math(r"x^2")
@@ -1643,39 +1548,9 @@ fn the_mechanism_of_multiplying_gaussians(b: LessonBuilder) -> LessonBuilder {
         .explain(r"1/\mathrm{width}^2", "One over the width, squared",
             "The other costume curvature wears: inverse squared width.")
         .para(|p| p
-            .text("And this is not a Gaussian quirk. The quantity ")
-            .math(r"-\mathbb{E}[∂_\theta^2\log p]")
-            .text(" is the Fisher information ")
-            .math(r"I(\theta)")
-            .text(", which for the mean of ")
-            .math(r"\mathcal{N}(\theta,\sigma^2)")
-            .text(" is exactly ")
+            .text("That curvature has a name — the Fisher information — and for the mean of a Gaussian it is exactly ")
             .math(r"1/\sigma^2")
-            .text("; which adds over independent observations (")
-            .math(r"I_n = nI_1")
-            .text("); and which the Cramér–Rao bound shows to be the exact reciprocal of the best variance any unbiased estimator can achieve, ")
-            .math(r"\mathrm{Var}(\hat\theta)\ge 1/I(\theta)")
-            .text(". That triple is the real answer to \"why that quantity and no other\": ")
-            .math(r"1/\sigma^2")
-            .text(" is the summary of a source that is additive when evidence is pooled and whose reciprocal is the attainable variance. The Cauchy–Schwarz floor above and Cramér–Rao's ")
-            .math(r"1/I")
-            .text(" are, for the Gaussian, the same number — which is the structural reason the two derivations cannot disagree."))
-        .explain(r"-\mathbb{E}[∂_\theta^2\log p]", "The Fisher information, written out",
-            "Minus the average curvature of the log-density in the parameter: how sharply it bends as the parameter moves.")
-        .explain(r"I(\theta)", "The Fisher information",
-            "How much a source tells you about the parameter θ. For the mean of a Gaussian it is exactly one over the variance.")
-        .explain(r"\mathcal{N}(\theta,\sigma^2)", "A Gaussian with unknown mean",
-            "A normal distribution whose mean is the parameter being estimated.")
-        .explain(r"I_n", "The information in n observations",
-            "How much n independent observations tell you: n times what one tells you.")
-        .explain(r"nI_1", "n times one observation's information",
-            "Information adds over independent observations, so n of them carry n times as much.")
-        .explain(r"\mathrm{Var}(\hat\theta)", "The variance of an estimator",
-            "How wrong an estimator of θ is, written as a variance.")
-        .explain(r"1/I(\theta)", "The Cramér–Rao floor",
-            "The reciprocal of the Fisher information: the best variance any unbiased estimator can achieve.")
-        .explain(r"1/I", "One over the information",
-            "The attainable variance, written short.")
+            .text(", it adds over independent observations, and the Cramér–Rao bound shows its reciprocal to be the best variance any unbiased estimator can achieve. That triple is the real answer to \"why that quantity and no other\": precision is the summary of a source that is additive when evidence is pooled and whose reciprocal is the attainable variance."))
         .para(|p| p
             .text("Note also the generalisation and its price. Curvatures of log-densities always add, because differentiation is linear. What is special about the Gaussian is that the curvature does not depend on ")
             .math(r"x")
@@ -1691,118 +1566,11 @@ fn the_mechanism_of_multiplying_gaussians(b: LessonBuilder) -> LessonBuilder {
         .explain(r"z_1,z_2", "The two measurements",
             "The first and second observations being folded in.")
         .para(|p| p
-            .text("Bedrock: one definition and one identity. Independence is the factorisation of the joint density — not a claim that could be checked and found false — and ")
+            .text("Bedrock: one definition, one empirical claim, and one functional equation — and it matters which is which. The definition: independence means the joint density factorises, and there is nothing beneath that. The empirical claim: whether these two particular sensors are independent given the state is a claim about the world, it is checkable, and it is the assumption most often false in practice — the whole of \"the same data twice\" is this one premise failing. So the chain does not bottom out in pure definition; the algebra is definitional and the licence to use it is not. The functional equation: ")
             .math(r"e^{u+v}=e^ue^v")
-            .text(" is the defining functional equation of the exponential rather than a theorem about it. There is nothing beneath either to ask \"why\" of."))
+            .text(" may be taken as the defining property of the exponential rather than a theorem about it. There is nothing beneath the first and the third to ask \"why\" of — and the second is answered by looking, not by reasoning."))
         .explain(r"e^ue^v", "The two exponentials, multiplied",
             "The exponential of u times the exponential of v: the other side of the exponential's defining equation.")
-}
-
-fn why_two_derivations_agree(b: LessonBuilder) -> LessonBuilder {
-    b.heading("Going deeper — why two completely different derivations give the same answer")
-        .para(|p| p
-            .text("One derivation assumed Gaussian densities. The other assumed no distribution whatsoever. They land on identical weights. Why?"))
-        .para(|p| p
-            .text("The shallow answer is that both minimise the same quadratic. Bayes minimises the negative log posterior ")
-            .math(r"\frac{(x-\mu_1)^2}{2\sigma_1^2}+\frac{(x-\mu_2)^2}{2\sigma_2^2}")
-            .text(" over ")
-            .math(r"x")
-            .text("; minimum-variance minimises ")
-            .math(r"w^2\sigma_1^2 + (1-w)^2\sigma_2^2")
-            .text(" over ")
-            .math(r"w")
-            .text(". Different variables, but each is a convex quadratic with the two precisions as its only inputs, so each yields a linear stationarity condition balancing ")
-            .math(r"\sigma_1^2")
-            .text(" against ")
-            .math(r"\sigma_2^2")
-            .text(". True — but that notes a coincidence of shapes rather than explaining it."))
-        .explain(r"\frac{(x-\mu_1)^2}{2\sigma_1^2}", "The first source's penalty",
-            "How far a candidate x sits from the first estimate, squared and divided by twice its variance.")
-        .explain(r"\frac{(x-\mu_2)^2}{2\sigma_2^2}", "The second source's penalty",
-            "How far a candidate x sits from the second estimate, squared and divided by twice its variance.")
-        .para(|p| p
-            .text("The real reason is that under Gaussianity the best estimator of all is already a linear one. Two facts meet:"))
-        .para(|p| p
-            .text("1. The conditional mean ")
-            .math(r"\mathbb{E}[x\mid z]")
-            .text(" minimises mean squared error among all functions of ")
-            .math(r"z")
-            .text(" — the orthogonality principle, which holds for any distribution whatever."))
-        .explain(r"\mathbb{E}[x\mid z]", "The conditional mean",
-            "The average of x once z is known. It minimises mean squared error among all functions of z, whatever the distribution.")
-        .para(|p| p
-            .text("2. For jointly Gaussian ")
-            .math(r"(x,z)")
-            .text(", that conditional mean is affine in ")
-            .math(r"z")
-            .text(": ")
-            .math(r"\mu_x + \Sigma_{xz}\Sigma_{zz}^{-1}(z-\mu_z)")
-            .text("."))
-        .explain(r"(x,z)", "The state and the measurement, taken together",
-            "The pair whose joint distribution is being assumed Gaussian.")
-        .explain(r"\mu_x", "The mean of the state",
-            "Where the state sits on average, before the measurement is read.")
-        .explain(r"(z-\mu_z)", "The measurement's surprise",
-            "How far the measurement landed from where it was expected to land.")
-        .explain(r"\Sigma_{xz}\Sigma_{zz}^{-1}", "The affine coefficient",
-            "How the state and measurement move together, divided by how the measurement moves on its own.")
-        .explain(r"\mu_z", "The mean of the measurement",
-            "Where the measurement was expected to land.")
-        .para(|p| p
-            .text("Put together: Gaussianity places the unrestricted optimum inside the linear class. The minimum-variance route, searching only linear blends, is not settling for second best — the best was already in the room. This also marks exactly where the two routes part company: with non-Gaussian noise the linear route still returns the best linear unbiased estimator, while some nonlinear function of ")
-            .math(r"z")
-            .text(" may beat it, and the Kalman filter is then optimal only within its class."))
-        .para(|p| p
-            .text("Where does that affine coefficient come from? Build the residual ")
-            .math(r"r = (x-\mu_x) - \Sigma_{xz}\Sigma_{zz}^{-1}(z-\mu_z)")
-            .text(" and compute its covariance with the data:"))
-        .explain(r"(x-\mu_x)", "The state's own departure from its mean",
-            "How far the state sits from where it was expected to sit.")
-        .display(r"\mathrm{Cov}(r,z) = \Sigma_{xz} - \Sigma_{xz}\Sigma_{zz}^{-1}\Sigma_{zz} = 0")
-        .explain(r"\mathrm{Cov}(r,z)", "The covariance between residual and data",
-            "How the leftover moves with the data that was used. Making it zero is what defines the coefficient.")
-        .explain(r"\Sigma_{xz}", "The cross-covariance",
-            "How the state and the measurement move together.")
-        .explain(r"\Sigma_{xz}\Sigma_{zz}^{-1}\Sigma_{zz}", "The coefficient, undone by the data's own spread",
-            "The affine coefficient multiplied back by the measurement covariance, which returns the cross-covariance and cancels it.")
-        .para(|p| p
-            .text("One line, using only second moments and no distributional assumption at all. The coefficient ")
-            .math(r"\Sigma_{xz}\Sigma_{zz}^{-1}")
-            .text(" is defined by the demand \"make whatever is left over uncorrelated with the data you used\" — and with ")
-            .math(r"\Sigma_{xz} = P^-H^\top")
-            .text(" and ")
-            .math(r"\Sigma_{zz} = S")
-            .text(" it is the Kalman gain ")
-            .math(r"K = P^-H^\top S^{-1}")
-            .text("."))
-        .explain(r"\Sigma_{zz}", "The measurement's own covariance",
-            "How the measurement moves on its own. In filter notation it is S.")
-        .explain(r"P^-H^\top", "The state-measurement cross-covariance, in filter notation",
-            "How the state and the measurement move together, built from the prior covariance and the measurement map.")
-        .para(|p| p
-            .text("Only now is Gaussianity invoked, and for exactly one purpose: for jointly Gaussian variables, uncorrelated implies independent, so ")
-            .math(r"\mathbb{E}[r\mid z] = \mathbb{E}[r] = 0")
-            .text(" and the affine expression is the true conditional mean rather than merely the best linear approximation to it. The entire relationship between the two derivations is that sentence: the second-moment route computes the decorrelating coefficient, and Gaussianity upgrades \"uncorrelated\" to \"independent\", which upgrades \"best linear\" to \"best\"."))
-        .explain(r"\mathbb{E}[r\mid z]", "The average leftover, given the data",
-            "What the residual averages to once the measurement is known. Being zero is what makes the affine expression the true conditional mean.")
-        .explain(r"\mathbb{E}[r]", "The average leftover",
-            "What the residual averages to. It is zero by construction.")
-        .para(|p| p
-            .text("Why does uncorrelated imply independent for joint Gaussians, when it fails for essentially every other family? Because the joint density touches its variables only through ")
-            .math(r"\exp\left(-\frac12 u^\top\Sigma^{-1}u\right)")
-            .text(". \"Uncorrelated\" means ")
-            .math(r"\Sigma")
-            .text(" is block diagonal; the inverse of a block-diagonal matrix is block diagonal (multiply the blocks and check); a block-diagonal quadratic form is a sum over blocks with no cross-terms; and the exponential of a sum is a product. The density factorises, which is the definition of independence. For any other family, zero covariance kills exactly one number — the second cross-moment — and leaves every higher-order dependence untouched."))
-        .explain(r"\exp\left(-\frac12 u^\top\Sigma^{-1}u\right)", "The multivariate Gaussian's kernel",
-            "The only place the joint density touches its variables: a quadratic form built from the inverse covariance.")
-        .explain(r"\frac12 u^\top\Sigma^{-1}u", "The quadratic form in the exponent",
-            "How far the vector u sits from the centre, measured in units the covariance sets.")
-        .explain(r"\Sigma^{-1}", "The inverse covariance",
-            "Precision in matrix form: what the Gaussian's exponent is actually built from.")
-        .para(|p| p
-            .text("And why is a method that reads only two moments entitled to lose nothing? Because for a Gaussian there is nothing else to read. A Gaussian is precisely the exponential of a quadratic, and a quadratic is precisely three coefficients with one spent on normalisation — so a Gaussian is two numbers. Mean and variance are not a summary of a Gaussian; they are a complete description of it. The agreement is forced, not lucky. (The sophisticated restatement, for later: the Gaussian is the maximum-entropy distribution with a given mean and variance — the unique law that commits to its two moments and to nothing beyond them.)"))
-        .para(|p| p
-            .text("Bedrock: a definition. The chain stops at what a Gaussian is — the exponential of a quadratic, hence exactly two free numbers — and the coincidence of the two routes is a restatement of that definition rather than a separate fact needing its own justification."))
 }
 
 fn idea_two_at_work(b: LessonBuilder) -> LessonBuilder {
@@ -1918,14 +1686,6 @@ fn idea_two_at_work(b: LessonBuilder) -> LessonBuilder {
             "The prior estimate divided by the prior variance.")
         .explain(r"\frac{z}{R}", "The quote, weighted by its precision",
             "The dealer quote divided by how noisy a single quote is.")
-        .para(|p| p
-            .text("Case 1 — the quote is as good as your mark, ")
-            .math(r"R = 4")
-            .text(". Then ")
-            .math(r"K = 4/8 = 0.5")
-            .text(", so ")
-            .math(r"\hat x^+ = \$102")
-            .text(". And the new uncertainty?"))
         .explain(r"4/8", "Four over eight",
             "The gain when your own doubt and the quote's noise are equal.")
         .explain(r"0.5", "Half",
@@ -1933,7 +1693,7 @@ fn idea_two_at_work(b: LessonBuilder) -> LessonBuilder {
         .explain(r"\$102", "A hundred and two dollars",
             "Where the mark lands when you move half the way from 100 toward the 104 quote.")
         .para(|p| p
-            .text("You mark an illiquid corporate bond at ")
+            .text("Case 1 — the quote is as good as your mark. You carry the bond at ")
             .math(r"\hat x^- = 100")
             .text(" with ")
             .math(r"P^- = 4")
@@ -1945,9 +1705,9 @@ fn idea_two_at_work(b: LessonBuilder) -> LessonBuilder {
             .math(r"\pm\$2")
             .text(", so ")
             .math(r"R = 4")
-            .text(". Work through ")
-            .math(r"K")
-            .text(", the new mark, and the new uncertainty."))
+            .text(". Work out the gain, the new mark, and the new uncertainty."))
+        .rule()
+        .note("Three numbers before you scroll: the gain as a fraction, the new mark in dollars, the new one-sigma in cents. Commit to the third especially — it is the one most people get wrong.")
         .para(|p| p
             .text("Follow the three lines in order."))
         .display(r"K = \frac{P^-}{P^- + R} = \frac{4}{4+4} = \frac12, \qquad \hat x^+ = 100 + \frac12(104 - 100) = \$102, \qquad P^+ = (1-K)P^- = \frac12 \times 4 = 2.")
@@ -1972,7 +1732,11 @@ fn idea_two_at_work(b: LessonBuilder) -> LessonBuilder {
             .math(r"\pm\$2")
             .text(" numbers. The precision form says why: ")
             .math(r"\frac{1}{P^+} = \frac{1}{P^-} + \frac{1}{R} = \frac14 + \frac14 = \frac12")
-            .text(". Precisions add, so two agreeing sources leave you more certain than either one alone."))
+            .text(". Precisions add, so two agreeing sources leave you more certain than either one alone. Most people say ")
+            .math(r"\pm\$2")
+            .text(" here, and it feels right precisely because you did just average two ")
+            .math(r"\pm\$2")
+            .text(" numbers, and averaging two numbers of the same size ought to leave a number of the same size. It does not, because it is the precisions that are being added, not the spreads."))
         .explain(r"\$4", "Four dollars",
             "The disagreement between the market and you.")
         .explain(r"\surd 2", "The square root of two",
@@ -1981,18 +1745,6 @@ fn idea_two_at_work(b: LessonBuilder) -> LessonBuilder {
             "The one-sigma spread left after folding in a quote as good as your own mark.")
         .explain(r"\frac14", "A quarter",
             "The precision of a variance-4 belief: one over four.")
-        .para(|p| p
-            .text("Most people say ")
-            .math(r"\pm\$2")
-            .text(": you averaged two ")
-            .math(r"\pm\$2")
-            .text(" numbers, so surely you are as unsure as before. It is ")
-            .math(r"\pm\$1.41")
-            .text(", because ")
-            .math(r"1/4 + 1/4 = 1/2")
-            .text(" and so ")
-            .math(r"P^+ = 2")
-            .text(". Agreeing sources make you more certain than either alone."))
         .explain(r"1/4", "A quarter",
             "One over a variance of four: the precision each of the two equally uncertain sources carries.")
         .explain(r"1/2", "A half",
@@ -2006,23 +1758,13 @@ fn idea_two_at_work(b: LessonBuilder) -> LessonBuilder {
         .explain(r"\pm\$6", "Give or take six dollars",
             "How good the only quote you can get on a thin day is.")
         .para(|p| p
-            .text("Same bond, same carried mark ")
-            .math(r"\hat x^- = 100")
-            .text(" with ")
-            .math(r"P^- = 4")
-            .text(" (")
-            .math(r"\pm\$2")
-            .text("), same quote ")
-            .math(r"z = 104")
-            .text(". But today is thin and the only quote you can get is worth about ")
-            .math(r"\pm\$6")
-            .text(", so ")
-            .math(r"R = 36")
+            .text("Same bond, same carried mark, same $104 quote — only ")
+            .math(r"R")
+            .text(" changes, to ")
+            .math(r"36")
             .text(". The gain is still ")
             .math(r"K = P^-/(P^- + R)")
-            .text(", and ")
-            .math(r"K = 4/40 = 0.1")
-            .text(". Finish it: where does the mark end up, and what is ")
+            .text(". Where does the mark end up, and what is ")
             .math(r"P^+")
             .text("?"))
         .explain(r"P^-/", "Your own doubt, divided by what follows",
@@ -2076,32 +1818,10 @@ fn idea_two_at_work(b: LessonBuilder) -> LessonBuilder {
             "The ratio of the two variances, which is what the weights actually run on.")
         .explain(r"\pm\$2.00", "Give or take two dollars",
             "The one-sigma spread carried in before the quote arrived.")
-        .para(|p| p
-            .text("The tempting answer weights by the ")
-            .math(r"\pm")
-            .text("s, ")
-            .math(r"6:2")
-            .text(", moving a quarter of the way to $101. The truth is ")
-            .math(r"K = 4/40 = 0.1")
-            .text(": you move one tenth of the way, to $100.40, and ")
-            .math(r"P^+ = 0.9\times 4 = 3.6")
-            .text(", a spread of ")
-            .math(r"\pm\$1.90")
-            .text(". Weights go as ")
-            .math(r"1/\sigma^2")
-            .text(", so a quote three times noisier gets one ninth the say."))
         .explain(r"0.9", "Nine tenths",
             "The share of the prior variance that survives a gain of one tenth.")
         .para(|p| p
-            .text("Case 3 — a near-useless quote, ")
-            .math(r"\pm\$10")
-            .text(", so ")
-            .math(r"R = 100")
-            .text(". Does letting junk into the blend pollute your mark?"))
-        .explain(r"\pm\$10", "Give or take ten dollars",
-            "How good a near-useless quote is.")
-        .para(|p| p
-            .text("Carried mark ")
+            .text("A short detour before the third case, because it isolates something the first two could not. Carried mark ")
             .math(r"\hat x^- = 100")
             .text(", ")
             .math(r"P^- = 4")
@@ -2189,39 +1909,56 @@ fn idea_two_at_work(b: LessonBuilder) -> LessonBuilder {
         .explain(r"\$101", "A hundred and one dollars",
             "Where the mark would have finished on the second quote alone.")
         .para(|p| p
+            .text("Case 3 — a near-useless quote. A stale dealer mark arrives on that same bond, carried at $100 with ")
+            .math(r"P^- = 4")
+            .text(". The quote is good to about ")
+            .math(r"\pm\$10")
+            .text(" — plainly junk, so ")
+            .math(r"R = 100")
+            .text(" — and the junior deletes it before it can contaminate the book. The senior makes him put it back. Does letting junk into the blend pollute your mark?"))
+        .explain(r"\pm\$10", "Give or take ten dollars",
+            "How good a near-useless quote is.")
+        .rule()
+        .note("Predict the damage before reading on: how far the mark moves, in cents, and whether the band ends up wider or tighter.")
+        .para(|p| p
             .text("It cannot. ")
             .math(r"K = 4/104 = 0.038")
-            .text(", the mark creeps $0.15 to $100.15, and the band tightens from $2.00 to $1.96 (")
+            .text(": the mark creeps fifteen cents to $100.15, and the band tightens, from ")
+            .math(r"\pm\$2.00")
+            .text(" to ")
+            .math(r"\pm\$1.96")
+            .text(" (")
             .math(r"P^+ = 3.85")
-            .text("). Bad data can only move you a little; it can never move you backwards. This is why a filter never discards an observation, and why the same precision-weighted blend reappears wherever finance merges a prior with evidence — the Black–Litterman posterior is an equilibrium prior and a set of views, each weighted by its own precision, in exactly this shape."))
+            .text("). There is no such thing as an independent observation that leaves you less certain — only ones that barely move you, which is why the filter never throws a print away, and why the same precision-weighted blend reappears wherever finance merges a prior with evidence: the Black–Litterman posterior is an equilibrium prior and a set of views, each weighted by its own precision, in exactly this shape."))
         .explain(r"4/104", "Four over a hundred and four",
             "The gain on a near-useless quote.")
         .explain(r"0.038", "Under four per cent",
             "The gain on a near-useless quote: the mark creeps, and no more.")
         .explain(r"3.85", "Three point eight five",
             "The variance left after a near-useless quote has been folded in — smaller than the four you started with.")
-        .para(|p| p
-            .text("A story to fix it. A stale dealer mark arrives on that same bond, carried at $100 with ")
-            .math(r"P^- = 4")
-            .text(". The quote is good to about ")
-            .math(r"\pm\$10")
-            .text(" — plainly junk — so the junior deletes it before it can contaminate the book. The senior makes him put it back. Predict the damage before reading on. ")
-            .math(r"K = 4/104 = 0.038")
-            .text(": the mark creeps fifteen cents to $100.15, and the band tightens, from ")
-            .math(r"\pm\$2.00")
-            .text(" to ")
-            .math(r"\pm\$1.96")
-            .text(". There is no such thing as an independent observation that leaves you less certain — only ones that barely move you, which is why the filter never throws a print away."))
         .explain(r"\pm\$1.96", "Give or take a dollar ninety-six",
             "The one-sigma spread left after even a near-useless quote: tighter than the two dollars you carried in.")
         .para(|p| p
             .text("Then the twist the junior should have worried about instead: the one thing that genuinely poisons the blend is not bad data, it is the same data twice, because \"precisions add\" needs the sources to be uncorrelated, and double-counted evidence keeps the cross term the derivation dropped."))
+        .para(|p| p
+            .text("All three cases are one curve, and it is worth seeing it. Drag your own uncertainty and watch where the two rules agree."))
+        .plot(Plot::new(0.0..=12.0)
+            .curve("where your mark actually lands", "100 + 4 * my_pm^2 / (my_pm^2 + x^2)")
+            .curve("where it lands if you weight the ±s", "100 + 4 * my_pm / (my_pm + x)")
+            .scatter("the three cases worked above", vec![[2.0, 102.0], [6.0, 100.4], [10.0, 100.15]])
+            .param("my_pm", 0.5..=5.0, 2.0)
+            .hline(100.0)
+            .hline(104.0)
+            .x_label("how good the quote is: its ±, in dollars")
+            .y_label("your new mark, in dollars")
+            .height(300.0)
+            .caption("The three answers, on one curve. The two horizontal lines are your $100 mark and the $104 quote, so the whole height of the plot is the $4 of disagreement. The lower curve is the truth, K = P⁻/(P⁻ + R). The upper one is the tempting rule that weights the ±s instead of the variances. They meet at exactly one place — where the quote is as good as your own mark, which is Case 1 — and separate everywhere else: at ±$6 the truth says $100.40 and the ± rule says $101.00. Drag my_pm, your own ±, and the meeting point follows it; the three dots were computed at ±$2, so they lift off the curve as soon as you move."))
 }
 
 fn interlude_from_two_numbers_to_a_matrix(b: LessonBuilder) -> LessonBuilder {
     b.heading("Interlude — from two numbers to a matrix")
         .para(|p| p
-            .text("Everything so far has used one uncertain quantity. Real problems have several at once, and the moment there are two, a new thing exists that was not there before: they can be wrong together. Idea 6 will show that this is where most of the filter's power comes from, so we need the vocabulary now."))
+            .text("Everything so far has used one uncertain quantity. Real problems have several at once, and the moment there are two, a new thing exists that was not there before: they can be wrong together. That is where most of a real filter's power comes from — a filter that measures only position can correct a velocity it never sees, because the two errors are wrong together. Idea 3 shows that wire appearing out of nothing, from one second of motion; spending it is Idea 6, past where this lesson stops. Either way the vocabulary is needed now, because the covariance matrix is where being wrong together is written down."))
         .para(|p| p
             .text("Covariance measures how two quantities vary together:"))
         .display(r"\mathrm{Cov}(X,Y) = \mathbb{E}[(X-\mu_X)(Y-\mu_Y)]")
@@ -2234,7 +1971,7 @@ fn interlude_from_two_numbers_to_a_matrix(b: LessonBuilder) -> LessonBuilder {
             .math(r"\rho = \mathrm{Cov}(X,Y)/(\sigma_X\sigma_Y)")
             .text(" is the unit-free version, always in ")
             .math(r"[-1,1]")
-            .text("."))
+            .text(". That bound is not a separate fact to memorise: it is the Cauchy–Schwarz inequality from the weighting argument, wearing a different hat. Two lists paired up and added cannot beat the two lists squared and added — and here the two lists are the two centred quantities, so their covariance cannot beat the product of their spreads."))
         .explain(r"\mathrm{Cov}(X,Y)/(\sigma_X\sigma_Y)", "Correlation",
             "The unit-free version of covariance: the covariance divided by the two standard deviations.")
         .explain(r"[-1,1]", "From minus one to one",
@@ -2262,7 +1999,7 @@ fn interlude_from_two_numbers_to_a_matrix(b: LessonBuilder) -> LessonBuilder {
             .text("Three readings of that exponent, each of which you will use."))
         .para(|p| p
             .math(r"\Lambda = \Sigma^{-1}")
-            .text(" is the precision matrix — \"how much you know\" rather than \"how unsure you are\". The information filter of Part 5 works entirely in this coordinate, and the reason will be familiar: in these coordinates, updating is addition."))
+            .text(" is the precision matrix — \"how much you know\" rather than \"how unsure you are\". A whole variant of the algorithm, the information filter, works entirely in this coordinate, and the reason will be familiar: in these coordinates, updating is addition."))
         .para(|p| p
             .math(r"d^2 = (x-\mu)^\top\Sigma^{-1}(x-\mu)")
             .text(" is the Mahalanobis distance — distance measured in standard deviations, accounting for correlation. The exponent is ")
@@ -2291,7 +2028,7 @@ fn interlude_from_two_numbers_to_a_matrix(b: LessonBuilder) -> LessonBuilder {
             .math(r"\mathrm{exp}")
             .text(" of a sum is a product; the density factorises as ")
             .math(r"p(a)p(b)")
-            .text(", which is the definition of independence. That is why, later, \"no correlation left\" will mean \"no information left\" rather than merely \"no linear information left\"."))
+            .text(", which is the definition of independence. That is a much stronger statement than it looks. For any other family, driving a correlation to zero removes the linear relationship and leaves every higher-order dependence untouched; for joint Gaussians it removes the relationship entirely, so \"no correlation left\" means \"no information left\" rather than \"no linear information left\". There is nothing hiding behind the second moment to be missed."))
         .explain(r"|\Sigma|", "The determinant of the covariance matrix",
             "The volume scaling factor of the covariance, so it measures the volume of the uncertainty ellipsoid.")
         .explain(r"|\Sigma_{aa}||\Sigma_{bb}|", "The two block determinants multiplied",
@@ -2301,7 +2038,9 @@ fn interlude_from_two_numbers_to_a_matrix(b: LessonBuilder) -> LessonBuilder {
         .explain(r"p(a)p(b)", "One density times the other",
             "The density split into a part for a and a part for b, which is the definition of independence.")
         .para(|p| p
-            .text("Just enough linear algebra. A vector is an ordered list of numbers — here the state ")
+            .text("Just enough linear algebra, and if you have read the algebra-to-linear lesson in this series you already have it — a matrix times a vector is a spreadsheet SUMPRODUCT dragged down the column, which is that lesson's dress and this lesson's ")
+            .math(r"F")
+            .text(". A vector is an ordered list of numbers — here the state ")
             .math(r"x\in\mathbb{R}^n")
             .text(". A matrix is a rectangular array representing a linear map; ")
             .math(r"A\in\mathbb{R}^{m\times n}")
@@ -2381,39 +2120,7 @@ fn interlude_from_two_numbers_to_a_matrix(b: LessonBuilder) -> LessonBuilder {
         .explain(r"u^\top x", "The state seen along a direction",
             "The single number you get by looking at the state along the direction u.")
         .para(|p| p
-            .text("Three more objects, each of which turns up at a specific place later. The Cholesky decomposition ")
-            .math(r"P = LL^\top")
-            .text(" with ")
-            .math(r"L")
-            .text(" lower triangular is a \"matrix square root\", existing exactly when ")
-            .math(r"P")
-            .text(" is positive definite; it is used for sampling, for square-root filters, and for sigma points. The trace ")
-            .math(r"\mathrm{tr}(A)=\sum_i A_{ii}")
-            .text(" is, for a covariance, the total variance summed over coordinates — so minimising ")
-            .math(r"\mathrm{tr}(P)")
-            .text(" is minimising total expected squared error. The determinant ")
-            .math(r"|A|")
-            .text(" is the volume scaling factor, so ")
-            .math(r"|P|")
-            .text(" measures the volume of the uncertainty ellipsoid, and ")
-            .math(r"\log|S_k|")
-            .text(" will appear in the log-likelihood as the \"how surprised should I be\" normaliser."))
-        .explain(r"LL^\top", "The Cholesky factor times its own transpose",
-            "A matrix square root of P, with L lower triangular. It exists exactly when P is positive definite.")
-        .explain(r"\mathrm{tr}(A)", "The trace of A",
-            "The sum of the entries down the diagonal.")
-        .explain(r"A_{ii}", "A diagonal entry",
-            "The entry sitting on row i and column i, which is what the trace sums over.")
-        .explain(r"\mathrm{tr}(P)", "The trace of P",
-            "For a covariance, the total variance summed over coordinates — so minimising it is minimising total expected squared error.")
-        .explain(r"|A|", "The determinant of A",
-            "The volume scaling factor of the map A.")
-        .explain(r"|P|", "The determinant of P",
-            "The volume of the uncertainty ellipsoid.")
-        .explain(r"\log|S_k|", "The log determinant of the innovation covariance",
-            "The term that appears in the log-likelihood as the \"how surprised should I be\" normaliser.")
-        .para(|p| p
-            .text("Finally, the identity that appears more often than any other expression in this subject — thirteen of the seventeen deep chains in the source material lean on it:"))
+            .text("Finally, the identity that appears more often than any other expression in this subject:"))
         .display(r"\mathrm{Cov}(Ax) = A\Sigma A^\top")
         .para(|p| p
             .text("You already derived it. It is ")
@@ -2427,6 +2134,12 @@ fn interlude_from_two_numbers_to_a_matrix(b: LessonBuilder) -> LessonBuilder {
             .text(" — is that one bracket-expansion wearing matrices."))
         .explain(r"2\mathbb{E}[X'Y']", "Twice the average of the product",
             "The cross term of the expansion: twice the expected product of the two centred quantities.")
+        .explain(r"\Sigma^{-1}", "The inverse covariance",
+            "Precision in matrix form: what the Gaussian's exponent is actually built from.")
+        .explain(r"A\Sigma A^\top", "A covariance pushed through a linear map",
+            "The spread Σ after the map A has been applied to it. The map appears on both sides because spread scales by the square of a scale — and because it is a sandwich, the result is automatically symmetric and never claims a negative spread in any direction.")
+        .explain(r"(I-KH)", "The shrinkage factor",
+            "What survives of the prior covariance once the measurement has been folded in. Because it is a difference rather than a sandwich, arithmetic error can push it out of shape, which is why implementations often prefer the Joseph form's sum.")
 }
 
 fn idea_three(b: LessonBuilder) -> LessonBuilder {
@@ -2524,59 +2237,9 @@ fn why_the_gaussian_family_is_closed(b: LessonBuilder) -> LessonBuilder {
         .explain(r"e^{-\mathrm{quadratic}}", "The exponential of minus a quadratic",
             "The shape the whole closure question is about: does integrating a block of variables out of one leave another of the same kind?")
         .para(|p| p
-            .text("Yes — because of completing the square, and completing the square is not a trick. It is Gaussian elimination. Split"))
-        .display(r"q(a,b) = (b-m(a))^\top\Lambda_{bb}(b-m(a)) + r(a), \qquad m(a) = \mu_b - \Lambda_{bb}^{-1}\Lambda_{ba}(a-\mu_a)")
-        .explain(r"q(a,b)", "The quadratic in both blocks",
-            "The exponent before the b-block has been integrated out.")
-        .explain(r"(b-m(a))^\top", "The shifted b-block, laid on its side",
-            "How far b sits from the shift m(a), written as a row.")
-        .explain(r"\Lambda_{bb}(b-m(a))", "The pivot block applied to the shifted b-block",
-            "The b-block of the precision matrix acting on b's departure from m(a).")
-        .explain(r"r(a)", "The Schur complement",
-            "What survives in the a-block once the off-diagonal has been killed.")
-        .explain(r"\qquad m(a)", "The shift",
-            "The amount b must be moved by so that all the b-dependence collects into one bracket.")
-        .explain(r"\mu_b", "The mean of the b-block",
-            "Where the b-block sits before the cross term shifts it.")
-        .explain(r"\Lambda_{bb}^{-1}\Lambda_{ba}(a-\mu_a)", "The cross term divided by the pivot block",
-            "The correction that a's departure from its own mean makes to b: the off-diagonal being eliminated.")
+            .text("Yes — because of completing the square, and completing the square is not a trick. It is Gaussian elimination. Shift the block you are integrating out by an amount that depends on the block you are keeping, chosen so that every bit of the first block's dependence collects into a single bracket and none of it is left outside. That is exactly one block row-operation killing the off-diagonal of the precision matrix. The bracket then integrates to a constant — sliding a shape sideways does not change the area under it — and what is left is the exponential of a quadratic in the block you kept. A Gaussian."))
         .para(|p| p
-            .text("In that split the first bracket is all the ")
-            .math(r"b")
-            .text("-dependence, and ")
-            .math(r"r(a)")
-            .text(" is none of it."))
-        .para(|p| p
-            .text("which is exactly one block row-operation killing the off-diagonal of the symmetric precision matrix ")
-            .math(r"\Lambda")
-            .text(". What survives in the ")
-            .math(r"a")
-            .text("-block is the Schur complement ")
-            .math(r"r")
-            .text(". Then"))
-        .display(r"\int e^{-\frac12 q(a,b)}\,db = e^{-\frac12 r(a)}\int e^{-\frac12 (b-m(a))^\top\Lambda_{bb}(b-m(a))}\,db")
-        .explain(r"e^{-\frac12 q(a,b)}\,db", "The joint density over a slice of b",
-            "The integrand of the marginalisation: the exponentiated quadratic in both blocks, across a slice db.")
-        .explain(r"e^{-\frac12 r(a)}", "The Schur complement's exponential",
-            "The factor that carries all the a-dependence out of the integral.")
-        .explain(r"e^{-\frac12 (b-m(a))^\top\Lambda_{bb}(b-m(a))}\,db", "The shifted b-block's density over a slice of b",
-            "The surviving integral, which is a constant that does not depend on a.")
-        .para(|p| p
-            .text("and the surviving integral is a constant that does not depend on ")
-            .math(r"a")
-            .text(", because sliding the integration variable sideways by ")
-            .math(r"m(a)")
-            .text(" does not change the area under a curve. The only ")
-            .math(r"a")
-            .text("-dependence left is ")
-            .math(r"e^{-r(a)/2}")
-            .text(": a Gaussian."))
-        .explain(r"m(a)", "The shift",
-            "The amount the integration variable is slid sideways by, which does not change the area under a curve.")
-        .explain(r"e^{-r(a)/2}", "The exponential of minus half the Schur complement",
-            "The only a-dependence left once b has been integrated out: a Gaussian.")
-        .para(|p| p
-            .text("Two things are load-bearing there and both can be told to a beginner: translation invariance — moving a shape sideways does not change the area under it — and the fact that the Gaussian integral ")
+            .text("Two things are load-bearing there and both can be told to a beginner: translation invariance, and the fact that the Gaussian integral ")
             .math(r"\int e^{-x^2}dx = \surd\pi")
             .text(" is finite at all, so that constant is a number rather than ")
             .math(r"\infty")
@@ -2586,31 +2249,11 @@ fn why_the_gaussian_family_is_closed(b: LessonBuilder) -> LessonBuilder {
         .explain(r"e^{-x^2}dx", "The Gaussian bump over a slice of the line",
             "The integrand of the Gaussian integral, whose being finite is what makes that constant a number.")
         .para(|p| p
-            .text("And note the payoff. The Kalman covariance update ")
-            .math(r"\Sigma_{aa} - \Sigma_{ab}\Sigma_{bb}^{-1}\Sigma_{ba}")
-            .text(" is a Schur complement because completing the square is Schur complementation. That is not an analogy; it is the same algebra. Learn this one act properly and you have paid in advance for six later results."))
-        .explain(r"\Sigma_{aa}", "The a-block of the covariance",
-            "The covariance of the a-block on its own, before the correction is taken off it.")
-        .explain(r"\Sigma_{ab}\Sigma_{bb}^{-1}\Sigma_{ba}", "The correction the update subtracts",
-            "The cross-covariance, divided by the b-block, times the cross-covariance back: the other half of the Schur complement.")
+            .text("And note the payoff. What survives in the kept block has a name — the Schur complement — and the Kalman covariance update is one, because completing the square is Schur complementation. That is not an analogy; it is the same algebra. Learn this one act properly and you have paid in advance for three things at once: the covariance update, marginalisation, and conditioning."))
         .para(|p| p
-            .text("Why is the cross term always eliminable? Because solving for the shift ")
-            .math(r"m(a)")
-            .text(" requires dividing by the pivot block ")
-            .math(r"\Lambda_{bb}")
-            .text(", and ")
-            .math(r"\Lambda_{bb}")
-            .text(" is always invertible because it is positive definite. Positive definiteness is doing double duty: it makes the elimination legal, and it makes ")
-            .math(r"e^{-q/2}")
-            .text(" an integrable bump rather than a trough. If ")
-            .math(r"q")
-            .text(" had even one negative direction, ")
-            .math(r"e^{-q/2}")
-            .text(" would grow without bound along it and there would be no probability distribution to integrate in the first place."))
-        .explain(r"\Lambda_{bb}", "The pivot block",
-            "The b-block of the precision matrix, always invertible because it is positive definite.")
-        .explain(r"e^{-q/2}", "The exponentiated quadratic",
-            "An integrable bump while q is positive definite; along a negative direction it would instead grow without bound.")
+            .text("Why is the cross term always eliminable? Because the shift requires dividing by the block being eliminated, and that block is always invertible because it is positive definite. Positive definiteness is doing double duty: it makes the elimination legal, and it makes the exponentiated quadratic an integrable bump rather than a trough. If the quadratic had even one negative direction the density would grow without bound along it, and there would be no probability distribution to integrate in the first place."))
+        .para(|p| p
+            .text("Why exactly degree 2? Odd degree is out immediately, for the reason just given: if the exponent had odd degree it would run to plus infinity in one direction, the density would explode, and there would be no distribution at all. Degrees 0 and 1 are out because constant or linear exponents are not integrable over the whole space. So 2 is the smallest exponent degree that yields a genuine, non-degenerate probability distribution — the Gaussian is the cheapest bump there is. And degree 4, though integrable, fails at the marginalisation step: in a quadratic the coupling between two blocks can be absorbed entirely by shifting one block, and in a quartic it cannot, so the leftover dependence is in general not the exponential of a polynomial and the family leaks."))
         .para(|p| p
             .text("And why is a covariance matrix always positive semi-definite? Not by decree, and not by convention. For any direction ")
             .math(r"u")
@@ -2626,49 +2269,15 @@ fn why_the_gaussian_family_is_closed(b: LessonBuilder) -> LessonBuilder {
         .explain(r"\mathrm{Var}(u^\top x)", "The variance of the state seen along u",
             "An average of a squared quantity, so it can never be negative.")
         .para(|p| p
-            .text("Bedrock: a definition plus an order axiom of the real numbers. Variance is defined as the expectation of a square, and ")
+            .text("Bedrock: a definition, an order axiom, and one property of averaging. Variance is defined as the expectation of a square. That ")
             .math(r"t^2\ge0")
             .text(" for every real ")
             .math(r"t")
-            .text(" is an axiom of ")
+            .text(" is not itself an axiom but follows in two lines from the order axioms of ")
             .math(r"\mathbb{R}")
-            .text(" as an ordered field. There is nothing underneath \"a squared number is not negative\" left to explain."))
+            .text(" — the ones saying the order survives adding and multiplying. And an average of quantities that are never negative is never negative, which is what carries \"a squared number is not negative\" from one number up to an expectation. There is nothing underneath any of the three."))
         .explain(r"t^2", "t squared",
             "A real number multiplied by itself, which is never negative.")
-        .para(|p| p
-            .text("Why exactly degree 2? It is worth knowing that this is not arbitrary. Odd degree is out immediately: if ")
-            .math(r"q")
-            .text(" has odd degree then ")
-            .math(r"-q")
-            .text(" runs to ")
-            .math(r"+\infty")
-            .text(" in one direction, ")
-            .math(r"e^{-q/2}")
-            .text(" explodes, and there is no distribution. Degrees 0 and 1 are out because constant or linear exponents are not integrable over all of ")
-            .math(r"\mathbb{R}^n")
-            .text(". So 2 is the smallest exponent degree that yields a genuine, non-degenerate probability distribution — the Gaussian is the cheapest bump there is."))
-        .explain(r"-q", "Minus the quadratic",
-            "The exponent with its sign flipped. If the quadratic had odd degree this would run to plus infinity in one direction.")
-        .explain(r"+\infty", "Plus infinity",
-            "Growing without bound, which is where an odd-degree exponent sends the density.")
-        .para(|p| p
-            .text("And degree 4, though integrable, fails at the marginalisation step for a structural reason: a quadratic form is a symmetric matrix. The correspondence ")
-            .math(r"q(x)=x^\top Ax\leftrightarrow A")
-            .text(" is a bijection, which hands quadratics the whole of linear algebra — elimination, inversion, and Sylvester's law of inertia, which says every real quadratic form can be brought to a plain sum of ")
-            .math(r"\pm")
-            .text(" squares by a change of coordinates. That normal form is what \"completing the square\" is. A cubic or quartic form is not a matrix; it is a 3- or 4-index tensor, and no comparable classification exists. In a quadratic the coupling between two blocks is bilinear, so it can be absorbed entirely by shifting one block by an amount affine in the other; in a quartic the coupling includes terms like ")
-            .math(r"a^2b^2")
-            .text(" and ")
-            .math(r"a^3b")
-            .text(", which no shift removes, so the leftover dependence is in general not the exponential of a polynomial and the family leaks."))
-        .explain(r"x^\top Ax\leftrightarrow A", "A quadratic form and its matrix, in one-to-one correspondence",
-            "The bijection that hands quadratics the whole of linear algebra: elimination, inversion, and Sylvester's law of inertia.")
-        .explain(r"a^2b^2", "a squared times b squared",
-            "One of the quartic coupling terms that no shift removes.")
-        .explain(r"a^3b", "a cubed times b",
-            "Another quartic coupling term that no shift removes.")
-        .para(|p| p
-            .text("Bedrock: a definition. \"A quadratic form is a symmetric matrix\" is not a theorem to be justified but the definition of what a quadratic form is; every closure property in this lesson is a consequence of the fact that degree 2, and only degree 2, has matrices behind it."))
 }
 
 fn what_breaks_when_linearity_or_gaussianity_fails(b: LessonBuilder) -> LessonBuilder {
@@ -2688,7 +2297,7 @@ fn what_breaks_when_linearity_or_gaussianity_fails(b: LessonBuilder) -> LessonBu
         .para(|p| p
             .text("You may have exact, finite, and nonlinear — pick two."))
         .para(|p| p
-            .text("Bedrock: an empirical fact, about the mathematical literature rather than about the world. That the list of models admitting an exact finite-dimensional filter is this short is something that was discovered by decades of searching, not deduced from a simpler principle. There is no theorem saying \"no others exist\" — only an enumeration that has stayed almost empty."))
+            .text("Bedrock: two different floors, and the honest answer is that this question has one of each. Under a structural restriction — estimation algebras of maximal rank — the shortness of the list is a theorem, not an observation: a structure theorem forces the drift to be of the linear-plus-gradient kind, which is precisely the Kalman and Beneš class, and the classification has been completed for state dimensions up to four. Drop the restriction and there is no such theorem; the general classification is an open problem, and the near-empty catalogue there is an enumeration rather than a proof. So \"exact, finite, nonlinear — pick two\" is proved where the structure is nice and merely never-refuted everywhere else. That distinction is worth carrying: it is the difference between a wall and a frontier."))
 }
 
 fn is_the_gaussian_special_or_merely_convenient(b: LessonBuilder) -> LessonBuilder {
@@ -2697,6 +2306,8 @@ fn is_the_gaussian_special_or_merely_convenient(b: LessonBuilder) -> LessonBuild
             .text("Name it plainly, because the lesson's whole treatment turns on it: it is a convention — but a forced one. Two halves, and they must be kept apart."))
         .para(|p| p
             .text("The filter's reason for using Gaussians is closure, not evidence. Nobody inspected data, found bell curves, and then invented the filter. Kálmán needed a belief representable by finitely many numbers forever, and the exponentiated-quadratic family is the family that delivers it. The decisive evidence that this is a modelling choice rather than a fact about the world is that the minimum-variance derivation of the very same gain uses only linearity and second moments — no Gaussianity anywhere. Strip Gaussianity out and the algorithm does not change by a single character; only the claim weakens, from \"best of all estimators\" to \"best of all linear estimators\". A genuine empirical premise, removed, would break the machine. This one does not."))
+        .para(|p| p
+            .text("It is worth knowing why the claim weakens by exactly that much and no more, because it also settles a question you may have been carrying: how did two derivations that assumed such different things — one a product of bell curves, the other no distribution whatsoever — land on identical weights? The best estimator of all is the conditional mean, which minimises squared error among every function of the data, whatever the distribution. What Gaussianity adds is that for jointly Gaussian quantities the conditional mean happens to be affine in the data. So Gaussianity places the unrestricted optimum inside the linear class, and the minimum-variance route — searching only linear blends — was never settling for second best. The best was already in the room. Remove Gaussianity and the room shrinks rather than moves: some nonlinear function of the data may now beat the filter, which is exactly the gap between \"best\" and \"best linear\"."))
         .para(|p| p
             .text("But it is not an arbitrary convention. Once you have decided to carry a mean and a covariance and nothing else, four independent results say the Gaussian is the only consistent completion."))
         .para(|p| p
@@ -2708,27 +2319,21 @@ fn is_the_gaussian_special_or_merely_convenient(b: LessonBuilder) -> LessonBuild
         .explain(r"\frac12\log[(2\pi e)^n\det\Sigma]", "The differential entropy of a Gaussian",
             "The largest differential entropy any distribution with that mean and covariance can have.")
         .para(|p| p
-            .text("2. Stability — the sharpest one for this filter. A location-scale family closed under both linear maps and independent sums is, by definition, a stable family. Stable laws are classified by an index ")
-            .math(r"\alpha\in(0,2]")
-            .text(", and only ")
-            .math(r"\alpha=2")
-            .text(" — the Gaussian — has finite variance. Every other stable law has infinite variance, so it has no covariance matrix at all and the filter would have nothing to propagate. Note what this identifies as the discriminating property: the multivariate Student-")
+            .text("2. Stability — the sharpest one for this filter. A family closed under both linear maps and independent sums is a stable family, and the stable laws are classified: only one of them has finite variance, and it is the Gaussian. Every other has no covariance matrix at all, so the filter would have nothing to propagate. Note what this identifies as the discriminating property. The multivariate Student-")
             .math(r"t")
-            .text(" is closed under affine maps, marginalisation and conditioning — three of the four — but is not closed under independent sums. It is the convolution closure, the ")
+            .text(" is closed under affine maps, marginalisation and conditioning — three of the four — but not under independent sums. It is the ")
             .math(r"+Q")
             .text(" in ")
             .math(r"P^- = FPF^\top+Q")
-            .text(", that singles out the Gaussian. The predict step, not the update step."))
-        .explain(r"(0,2]", "From zero up to and including two",
-            "The range of the index that classifies the stable laws.")
+            .text(" that singles out the Gaussian: the predict step, not the update step."))
         .explain(r"+Q", "Plus Q",
-            "The independent process noise added at the predict step. It is this convolution closure that singles out the Gaussian.")
+            "The independent process noise added at the predict step. It is this closure under sums that singles out the Gaussian.")
         .para(|p| p
-            .text("3. Cramér's decomposition theorem (Cramér 1936, anticipated by Lévy): if a normal random variable is written as a sum of two independent pieces, both pieces must themselves be normal. So Gaussianity cannot be manufactured out of non-Gaussian parts. With (2), this upgrades the closure from available to exclusive."))
+            .text("3. Cramér's decomposition theorem: if a normal random variable is written as a sum of two independent pieces, both pieces must themselves be normal. Gaussianity cannot be manufactured out of non-Gaussian parts, which upgrades the closure from available to exclusive."))
         .para(|p| p
-            .text("4. Herschel–Maxwell — the one to actually show a beginner, because it is pure symmetry. It characterises the normal distribution as the distribution of the components of a spherically symmetric random vector, provided those components are independent. If your uncertainty looks the same from every direction and its coordinates are independent, it is Gaussian and nothing else. This is Maxwell's 1860 argument for molecular velocities, and it is the reason behind the most-leaned-on fact in this lesson: for jointly Gaussian variables, uncorrelated implies independent."))
+            .text("4. Herschel–Maxwell — the one to actually show a beginner, because it is pure symmetry. If your uncertainty looks the same from every direction and its coordinates are independent, it is Gaussian and nothing else. This is Maxwell's 1860 argument for molecular velocities, and it is the reason behind the most-leaned-on fact in this lesson: for jointly Gaussian variables, uncorrelated implies independent."))
         .para(|p| p
-            .text("What makes maximum entropy a principled reason rather than a nicety? Because entropy is a count, not a mood. Entropy is the log of the number of ways a large sample could be arranged and still display the summary statistics you specified. The maximum-entropy distribution is the one realised by overwhelmingly the most arrangements consistent with your constraints; picking anything narrower asserts that the world landed in a vastly smaller set of arrangements for a reason you have not stated and cannot point to. Concretely: you measured a centre and a spread. If you now choose a bimodal belief, or a skewed one, you have claimed to know where the second bump is, or which side is fatter — and you did not measure that. The Gaussian is the shape that refuses to claim it."))
+            .text("What makes maximum entropy a principled reason rather than a nicety? Because entropy is a count, not a mood: it is the log of the number of ways a large sample could be arranged and still show the summary statistics you specified. Picking anything narrower asserts that the world landed in a vastly smaller set of arrangements for a reason you have not stated. Concretely: you measured a centre and a spread. If you now choose a bimodal belief, or a skewed one, you have claimed to know where the second bump is, or which side is fatter — and you did not measure that. The Gaussian is the shape that refuses to claim it."))
         .para(|p| p
             .text("This also makes the filter's uncertainty legible as information: ")
             .math(r"\frac12\log\det(2\pi eP)")
@@ -2744,27 +2349,9 @@ fn is_the_gaussian_special_or_merely_convenient(b: LessonBuilder) -> LessonBuild
         .para(|p| p
             .text("Why not just say the central limit theorem hands us Gaussians? Because for a finance lesson the CLT is the weakest of the four arguments, and the one the reader's own data will falsify."))
         .para(|p| p
-            .text("First, it is circular here. The CLT converges to the Gaussian precisely because the Gaussian is the fixed point of the operation the CLT performs. Add two independent copies and rescale to restore the variance: for independent ")
-            .math(r"X_1,X_2\sim\mathcal{N}(0,\sigma^2)")
-            .text(", closure properties (1) and (2) give ")
-            .math(r"\frac{X_1+X_2}{\surd 2}\sim\mathcal{N}(0,\sigma^2)")
-            .text(" — identically the same distribution, not approximately. The ")
+            .text("First, it is circular here. The CLT converges to the Gaussian precisely because the Gaussian is the fixed point of the operation the CLT performs. Add two independent copies of a Gaussian and rescale by ")
             .math(r"\surd 2")
-            .text(" is forced, not chosen: independent variances add, so the sum has variance ")
-            .math(r"2\sigma^2")
-            .text(", and dividing by ")
-            .math(r"\surd 2")
-            .text(" divides the variance back by 2. The CLT is the further statement that this fixed point attracts. So \"the CLT gives us Gaussians\" and \"Gaussians are closed under sums\" are one fact read in two directions; the CLT cannot be offered as independent support for the closure that generates it."))
-        .explain(r"X_1", "The first copy",
-            "One of the two independent normal variables being added.")
-        .explain(r"X_2", "The second copy",
-            "The other of the two independent normal variables being added.")
-        .explain(r"\mathcal{N}(0,\sigma^2)", "The normal distribution with mean zero and variance sigma squared",
-            "The distribution both copies are drawn from — and, after rescaling, the distribution their sum has again.")
-        .explain(r"\frac{X_1+X_2}{\surd 2}", "The sum of two copies, rescaled",
-            "Two independent copies added and divided by the square root of two, which restores the variance.")
-        .explain(r"2\sigma^2", "Twice the variance",
-            "The variance of the sum, because independent variances add.")
+            .text(" to restore the variance, and you get back the identical distribution — not approximately, exactly, by the closure properties already established. The CLT is the further statement that this fixed point attracts. So \"the CLT gives us Gaussians\" and \"Gaussians are closed under sums\" are one fact read in two directions; the CLT cannot be offered as independent support for the closure that generates it."))
         .para(|p| p
             .text("Second, it empirically fails where this lesson is aimed. The CLT needs many independent effects with finite variance. Financial returns violate both: volatility clusters, so the effects are dependent; and tails are fat enough that the finite-variance premise is marginal at best. A lesson that justifies Gaussianity to a finance student via the CLT is teaching something the student's own return series will contradict within a week."))
         .para(|p| p
@@ -2778,9 +2365,7 @@ fn idea_three_at_work(b: LessonBuilder) -> LessonBuilder {
         .para(|p| p
             .text("In the physical world. Picture uncertainty as a shape on the ice. A puck slides on a frictionless rink. You do not know exactly where it is, or exactly how fast, so instead of drawing a dot you draw a fuzzy blob — the region the puck is probably in. A Gaussian's contour is an ellipse, so the blob is an ellipse."))
         .para(|p| p
-            .text("Now let a second pass. Constant-velocity motion is the linear map"))
-        .para(|p| p
-            .text("One convention before that map, and it holds for every matrix in this lesson: a matrix is set on a single line with a semicolon between its rows, so ")
+            .text("One convention first, and it holds for every matrix in this lesson: a matrix is set on a single line with a semicolon between its rows, so ")
             .math(r"(\,a\ \ b\,;\ \ c\ \ d\,)")
             .text(" is the two-by-two array whose top row is ")
             .math(r"a\ \ b")
@@ -2793,6 +2378,8 @@ fn idea_three_at_work(b: LessonBuilder) -> LessonBuilder {
             "The first row of the matrix.")
         .explain(r"c\ \ d", "The bottom row",
             "The second row of the matrix.")
+        .para(|p| p
+            .text("Now let one second of time pass. Constant-velocity motion is the linear map"))
         .display(r"\binom{p}{v}_{t+1} = (\,1\ \ \Delta t\,;\ \ 0\ \ 1\,)\binom{p}{v}_{t}")
         .explain(r"\binom{p}{v}_{t+1}", "Position and velocity, one step later",
             "The two states stacked as a column, at time t plus one.")
@@ -2807,13 +2394,7 @@ fn idea_three_at_work(b: LessonBuilder) -> LessonBuilder {
             .math(r"\pm1")
             .text(" m and its velocity to ")
             .math(r"\pm1")
-            .text(" m/s, and the two errors are unrelated — a round blob. One second later, how wide is the position uncertainty?"))
-        .para(|p| p
-            .text("You know a vehicle's position to ")
-            .math(r"\pm1")
-            .text(" m and its velocity to ")
-            .math(r"\pm1")
-            .text(" m/s, and the two errors are uncorrelated. You look away for exactly one second, during which the position becomes ")
+            .text(" m/s, and the two errors are uncorrelated — a round blob. You look away for exactly one second, during which the position becomes ")
             .math(r"p + v\,\Delta t")
             .text(" with ")
             .math(r"\Delta t = 1")
@@ -2868,7 +2449,7 @@ fn idea_three_at_work(b: LessonBuilder) -> LessonBuilder {
             .math(r"A\Sigma A^\top = (\,2\ \ 1\,;\ \ 1\ \ 1\,)")
             .text(", so position and velocity are now correlated at ")
             .math(r"1/\surd 2 \approx 0.71")
-            .text(" — a vehicle that turns out to be fast is also one that has travelled further. The round blob has tilted, and that tilt is what Idea 6 later spends itself on. The same mistake with a different costume: a four-day forecast band on a random walk is twice the one-day band, not four times, and the square-root-of-time rule every risk desk uses is nothing but this fact applied ")
+            .text(" — a puck that turns out to be fast is also one that has travelled further. The round blob has tilted, and that tilt is the wire the Interlude promised: measure the position now, and the velocity you never measured moves too, because the two errors are no longer independent. Spending that wire is Idea 6, past where this lesson stops — but the wire itself was built here, by one second of motion and nothing else. The same mistake with a different costume: a four-day forecast band on a random walk is twice the one-day band, not four times, and the square-root-of-time rule every risk desk uses is nothing but this fact applied ")
             .math(r"n")
             .text(" times."))
         .explain(r"(\,2\ \ 1\,;\ \ 1\ \ 1\,)", "The covariance after the step",
@@ -2878,17 +2459,7 @@ fn idea_three_at_work(b: LessonBuilder) -> LessonBuilder {
         .explain(r"0.71", "About seventy-one hundredths",
             "What one over the square root of two comes to.")
         .para(|p| p
-            .text("The tempting answer is ")
-            .math(r"\pm2")
-            .text(" m: one metre of doubt you already had, plus one metre the velocity doubt buys you. But variances add, not standard deviations. ")
-            .math(r"1+1 = 2")
-            .text(", so the answer is ")
-            .math(r"\surd 2\approx1.41")
-            .text(" m."))
-        .para(|p| p
-            .text("And something appeared that was not there before: position and velocity are now correlated, at ")
-            .math(r"1/\surd 2\approx0.71")
-            .text(", because a puck that turns out to be fast is also a puck that has travelled further. The blob has tilted. Add a gust of wind — an independent Gaussian, the ")
+            .text("Add a gust of wind — an independent Gaussian, the ")
             .math(r"+Q")
             .text(" term — and the ellipse simply fattens. Ellipse plus ellipse, still an ellipse."))
         .figure(Figure::new(ILL_2_SVG, "The closure property, drawn. Starting from P0 = diag(1, 1) — position known to ±1 m, velocity to ±1 m/s, uncorrelated — one second of constant-velocity motion applies the shear F = (1 1; 0 1), giving P^- = F P0 F^T = (2 1; 1 1). Since P0 = I, the new 1σ contour is exactly the unit circle's image under F: its semi-axes are √((3 ± √5)/2) = 1.618 and 0.618, tilted 31.7°. Position doubt grows to √2 = 1.41 m, not 2 m, because variances add; velocity doubt is untouched at 1.00; and the tilt that appeared from nothing is the new correlation 1/√2 = 0.71 — a puck that turns out to be fast is also a puck that has travelled further.")
@@ -2926,9 +2497,11 @@ fn idea_three_at_work(b: LessonBuilder) -> LessonBuilder {
         .explain(r"n(n+1)/2", "The number of distinct covariance entries",
             "How many numbers a covariance over n states needs.")
         .para(|p| p
-            .text("Toy question: run that two-state filter from the open to the close on a stream of 10 ticks per second — ")
+            .text("Two systems open at 9:30 on the same two-state model. One is a Kalman filter on a ten-tick-per-second feed, so by the close it has processed ")
             .math(r"10\times6.5\times3600 = 234{,}000")
-            .text(" updates. How much more memory does it need at the close than it needed at the open?"))
+            .text(" updates. The other is a rolling 250-day regression on the same two coefficients. Which one needs more memory at 4pm?"))
+        .rule()
+        .note("Commit to which of the two is the hungrier one before you read on.")
         .explain(r"6.5", "Six and a half",
             "The hours in a trading session.")
         .explain(r"3600", "Three thousand six hundred",
@@ -2938,9 +2511,7 @@ fn idea_three_at_work(b: LessonBuilder) -> LessonBuilder {
         .explain(r"000", "Two hundred and thirty-four thousand",
             "The updates the filter performs between the open and the close.")
         .para(|p| p
-            .text("The tempting answer is \"a little more each tick — it has seen more data\". The correct answer is none. The same 5 numbers, the same 40 bytes, the same handful of multiplications per tick, on tick 234,000 as on tick 1. A rolling 250-day regression on the same two coefficients must physically hold its window — 500 numbers, 4,000 bytes — and disturb all of it every time the window rolls. The filter's window is infinite and costs nothing."))
-        .para(|p| p
-            .text("And here is the fun of it. Two systems open at 9:30 on the same two-state model. One is a Kalman filter on a ten-tick-per-second feed; by the close it has processed 234,000 updates. The other is a rolling 250-day regression on the same two coefficients. Guess which one needs more memory at 4pm. The filter holds 5 numbers — 40 bytes, fewer characters than this sentence — on tick 234,000 exactly as on tick 1. The rolling window holds 500 numbers, 4,000 bytes, and has to shove one observation out of the door every time a new one arrives. The one with the infinite window is the cheap one. Not because it is clever: because the belief's shape never changes, so there is never a third thing to store."))
+            .text("The tempting answer is the filter — it has seen more data. It is the regression, and not by a little. The filter holds 5 numbers — 40 bytes, fewer characters than this sentence — on tick 234,000 exactly as on tick 1, with the same handful of multiplications per tick. The rolling window holds 500 numbers, 4,000 bytes, and has to shove one observation out of the door every time a new one arrives. The one with the infinite window is the cheap one. Not because it is clever: because the belief's shape never changes, so there is never a third thing to store."))
         .para(|p| p
             .text("The honest counterpart, and you should hear it now rather than later, because this is where returns fight back. Under a Gaussian, ")
             .math(r"\Pr(|z|>4) = 6.334\times10^{-5}")
@@ -2959,6 +2530,321 @@ fn idea_three_at_work(b: LessonBuilder) -> LessonBuilder {
             .text("."))
         .explain(r"4\surd S_t", "A four-sigma gate",
             "A threshold set at four times the innovation's own standard deviation, which will fire far more often than once a lifetime.")
+}
+
+fn running_one_the_whole_filter(b: LessonBuilder) -> LessonBuilder {
+    b.rule()
+        .heading("Running one — the whole filter, on the bond")
+        .para(|p| p
+            .text("Everything so far has been one half-step at a time. Idea 2 folded a quote into a mark. Idea 3 pushed a belief forward through time. A filter is those two half-steps wired into a loop, and here is the loop, on the bond you have been carrying since the first page."))
+        .para(|p| p
+            .text("First, the two equations that say what you are filtering. They are the model; the five below are the algorithm."))
+        .display(r"x_k = Fx_{k-1} + w_k, \qquad z_k = Hx_k + v_k")
+        .explain(r"\qquad z_k", "The measurement at step k",
+            "What the instrument reports at step k. It is the only thing you ever actually see.")
+        .explain(r"Hx_k", "The state, carried into measurement space",
+            "The hidden state converted into the thing the instrument reports.")
+        .explain(r"v_k", "The measurement noise at step k",
+            "The reading's own error: how far the instrument missed by this time, with variance R.")
+        .para(|p| p
+            .text("The first says how the world moves when nobody is looking: today's fair value is yesterday's pushed through ")
+            .math(r"F")
+            .text(", plus a drift the model does not carry, with variance ")
+            .math(r"Q")
+            .text(". The second is the equation this lesson has owed you since Part 1, where ")
+            .math(r"v")
+            .text(" was named and then never spent: what you see is not the state but a reading of it. ")
+            .math(r"H")
+            .text(" converts the hidden thing into the thing the instrument reports, and the reading carries its own error, with variance ")
+            .math(r"R")
+            .text(". For this bond both maps are the identity — the fair value is a price, and a dealer quotes a price — so ")
+            .math(r"F = 1")
+            .text(" and ")
+            .math(r"H = 1")
+            .text(", and every matrix below collapses to a number. That is why this scene was chosen: nothing is hiding inside a symbol."))
+        .explain(r"F = 1", "The motion map is the identity",
+            "The fair value goes nowhere on its own, so the map that moves it is just multiplication by one.")
+        .explain(r"H = 1", "The measurement map is the identity",
+            "A dealer quotes the very quantity you are tracking, so the map into measurement space is multiplication by one.")
+        .para(|p| p
+            .text("Predict — before the quote arrives:"))
+        .display(r"\hat x^-_k = F\hat x^+_{k-1}, \qquad P^-_k = FP^+_{k-1}F^\top + Q")
+        .explain(r"F\hat x^+_{k-1}", "Last step's posterior, pushed forward",
+            "The belief you finished the previous step with, carried through the motion map.")
+        .explain(r"\qquad P^-_k", "The prior covariance at step k",
+            "How unsure you are at step k before the measurement is read.")
+        .explain(r"FP^+_{k-1}F^\top", "Last step's covariance, sandwiched by the motion",
+            "The uncertainty you finished the previous step with, carried forward through F.")
+        .para(|p| p
+            .text("Both halves of the belief, moved forward. You derived the first when means turned out to add and medians did not; you derived the second when the two composition rules for spread turned out to be the whole of it."))
+        .para(|p| p
+            .text("Update — once it has:"))
+        .display(r"K_k = P^-_kH^\top(HP^-_kH^\top + R)^{-1}")
+        .explain(r"P^-_kH^\top", "Your own doubt, carried into measurement space",
+            "The prior covariance mapped through H, so it can be compared with the instrument's noise.")
+        .explain(r"(HP^-_kH^\top + R)^{-1}", "One over the total spread of plausible measurements",
+            "Your doubt seen through the measurement map, plus the instrument's own noise, inverted. In the scalar case this whole gain is P⁻/(P⁻+R).")
+        .display(r"\hat x^+_k = \hat x^-_k + K_k(z_k - H\hat x^-_k), \qquad P^+_k = (I - K_kH)P^-_k")
+        .explain(r"K_k(z_k - H\hat x^-_k)", "A fraction of the disagreement",
+            "The gap between what the instrument said and what the prior predicted it would say, taken as far as the gain allows.")
+        .explain(r"z_k - H\hat x^-_k", "The disagreement at step k",
+            "What the instrument reported, less what the prior predicted it would report.")
+        .explain(r"H\hat x^-_k", "The measurement the prior predicts",
+            "The prior estimate carried into measurement space.")
+        .explain(r"\qquad P^+_k", "The posterior covariance at step k",
+            "How unsure you are once the measurement has been folded in.")
+        .explain(r"\hat x^+_k", "The posterior estimate at step k",
+            "The best guess once this step's measurement has been folded in.")
+        .explain(r"(I - K_kH)", "The shrinkage factor",
+            "What survives of the prior covariance once the measurement has been folded in.")
+        .explain(r"P^-_k", "The prior covariance at step k",
+            "How unsure you are at step k before the measurement is read.")
+        .para(|p| p
+            .text("Old belief, plus a fraction of the disagreement, and the fraction is the share of the total confusion that is yours. That is Idea 2 exactly as you first read it, when it was ")
+            .math(r"P^-/(P^-+R)")
+            .text(". Five equations, and not one of them is new. What is new is the arrow from the last line back to the first: ")
+            .math(r"P^+")
+            .text(" becomes next step's ")
+            .math(r"P^-")
+            .text(". That arrow is the filter."))
+        .explain(r"P^-/(P^-+R)", "The scalar gain",
+            "The share of the total confusion that is yours rather than the instrument's, when every map is the identity.")
+        .para(|p| p
+            .text("Now run it. Take ")
+            .math(r"Q = 2")
+            .text(" and ")
+            .math(r"R = 4")
+            .text(", carry the bond at $100 with ")
+            .math(r"P^+ = 2")
+            .text(" — the belief Case 1 left you holding — and let three days of quotes arrive: 104, then 101, then 103."))
+        .explain(r"Q = 2", "Two squared dollars of drift a day",
+            "How much the fair value genuinely moves overnight for reasons nobody quoted.")
+        .explain(r"R = 4", "Four squared dollars of quote noise",
+            "How badly a single dealer quote misses: one-sigma two dollars.")
+        .para(|p| p
+            .text("Day 1. Predict: the mark does not move, but overnight the variance climbs, ")
+            .math(r"P^- = 2 + 2 = 4")
+            .text(". The gain is ")
+            .math(r"K = 4/8 = \frac12")
+            .text(". The quote is 104, a disagreement of ")
+            .math(r"+\$4")
+            .text(", so the mark goes to $102.00 and ")
+            .math(r"P^+ = 2")
+            .text("."))
+        .explain(r"P^- = 2 + 2 = 4", "The variance after one night",
+            "The two you carried in, plus the two the world drifts each day.")
+        .explain(r"+\$4", "Four dollars of disagreement",
+            "How far the first quote sits above the mark.")
+        .rule()
+        .note("Two more days of quotes: $101, then $103. Run both days yourself — predict, gain, correct — before you read on. Watch the gain in particular; what it does is the whole point.")
+        .para(|p| p
+            .text("Day 2. Predict gives ")
+            .math(r"\hat x^- = 102.00")
+            .text(" and ")
+            .math(r"P^- = 4")
+            .text(" again, so ")
+            .math(r"K = \frac12")
+            .text(" again; the quote is 101, a disagreement of ")
+            .math(r"-\$1")
+            .text(", and the mark goes to $101.50 with ")
+            .math(r"P^+ = 2")
+            .text(". Day 3. Predict gives ")
+            .math(r"\hat x^- = 101.50")
+            .text(" and ")
+            .math(r"P^- = 4")
+            .text("; the quote is 103, a disagreement of ")
+            .math(r"+\$1.50")
+            .text(", and the mark finishes at $102.25 with ")
+            .math(r"P^+ = 2")
+            .text("."))
+        .explain(r"102.00", "A hundred and two dollars",
+            "Where the mark sits at the start of day two, before the quote.")
+        .explain(r"-\$1", "A dollar of disagreement, downward",
+            "The second quote lands a dollar below the mark.")
+        .explain(r"101.50", "A hundred and one fifty",
+            "Where the mark sits at the start of day three, before the quote.")
+        .explain(r"+\$1.50", "A dollar fifty of disagreement",
+            "How far the third quote sits above the mark.")
+        .figure(Figure::new(ILL_3_SVG, "The whole algorithm, run end to end on the bond. Local-level model: F = H = 1, Q = 2, R = 4, opened at x⁺ = 100 with P⁺ = 2. Each day the predict step leaves the mark exactly where it was and inflates the doubt, P⁻ = P⁺ + Q = 4; each quote then pulls the mark and shrinks the doubt back, since K = P⁻/(P⁻ + R) = 4/8 = 1/2 and P⁺ = (1 − K)P⁻ = 2. So z = 104 carries 100.00 to 102.00, z = 101 carries it to 101.50, and z = 103 carries it to 102.25. The shaded band is ±1σ: it breathes out from ±$1.41 to ±$2.00 across a day with no evidence, and back in the instant a quote lands. That is the sawtooth — the mean and the spread are moved by different things, and only the spread moves while you are not looking. That P returns to exactly 2 every day is not luck: 2 is the fixed point of P → 4(P + 2)/(P + 6), the positive root of P² + 2P − 8 = 0, so these opening numbers happen to start the filter already at its steady state, which is why K is 1/2 on all three days.")
+            .print_svg(ILL_3_SVG_PRINT)
+            .width_percent(80))
+        .para(|p| p
+            .text("Three things fall out of those nine numbers, and all three are free."))
+        .para(|p| p
+            .text("The sawtooth. ")
+            .math(r"P")
+            .text(" never settles: 2, 4, 2, 4, 2. It climbs by ")
+            .math(r"Q")
+            .text(" every night and is cut back by every morning's quote. What settles is the pattern, not the number — and this is the sawtooth promised back when we asked why the second number must be recomputed every step."))
+        .para(|p| p
+            .text("Steady state. The gain came out exactly ")
+            .math(r"\frac12")
+            .text(" on all three days, and would on the ten-thousandth. Ask which prior variance the loop returns unchanged — predict, update, and land back where you started — and you get ")
+            .math(r"(P^-)^2 = QP^- + QR")
+            .text(". With ")
+            .math(r"Q = 2")
+            .text(" and ")
+            .math(r"R = 4")
+            .text(" that is ")
+            .math(r"p^2 = 2p + 8")
+            .text(", so ")
+            .math(r"p = 4")
+            .text(" and ")
+            .math(r"K = \frac12")
+            .text(" for ever. This is the strange fact from the opening arriving with a number attached: not one quote was needed to compute it."))
+        .explain(r"(P^-)^2", "The prior variance, squared",
+            "The left-hand side of the steady-state condition.")
+        .explain(r"QP^-", "The drift times the prior variance",
+            "One of the two terms the settling condition balances against that square.")
+        .explain(r"QR", "The drift times the noise",
+            "The other term. Together they say one predict-and-update cycle returns the prior variance unchanged.")
+        .explain(r"p^2", "p squared",
+            "The steady-state condition with the numbers in, left-hand side.")
+        .explain(r"2p", "Twice p",
+            "What the drift term comes to at Q = 2.")
+        .explain(r"p = 4", "The settling prior variance",
+            "Where the variance settles before each quote, whatever it started at.")
+        .para(|p| p
+            .text("The moving average. With the gain pinned at ")
+            .math(r"\frac12")
+            .text(" and both maps the identity, the update collapses to ")
+            .math(r"\hat x^+_k = \frac12\hat x^+_{k-1} + \frac12 z_k")
+            .text(". No covariance survives in it at all. Unroll it and day three's mark is ")
+            .math(r"0.5\times103 + 0.25\times101 + 0.125\times104 + 0.125\times100 = 102.25")
+            .text(" — the same $102.25, with weights that halve every day."))
+        .explain(r"\frac12\hat x^+_{k-1}", "Half the old mark",
+            "What survives of yesterday's belief when the gain is a half.")
+        .explain(r"\frac12 z_k", "Half the new quote",
+            "The share today's quote takes when the gain is a half.")
+        .explain(r"101", "A hundred and one dollars",
+            "The second day's quote.")
+        .explain(r"0.125", "An eighth",
+            "The weight a quote from two days back still carries, and what is left of the opening mark.")
+        .explain(r"102.25", "A hundred and two twenty-five",
+            "Where the mark finishes after three days — the same answer the recursion gave, arrived at by weights alone.")
+        .para(|p| p
+            .text("That last line is the promise Idea 2 made and did not keep. A Kalman filter at steady state is an exponentially weighted moving average with decay ")
+            .math(r"1-K")
+            .text(", and an EWMA is a Kalman filter whose ")
+            .math(r"Q/R")
+            .text(" nobody said out loud. The algebra-to-linear lesson in this series writes the identical recursion for volatility and draws its memory curve; the curve that halves every day is this bond. Choosing a decay and choosing ")
+            .math(r"Q/R")
+            .text(" are one act — the filter only makes you say which one you meant."))
+        .explain(r"1-K", "One minus the gain",
+            "The decay of the equivalent moving average: how much of yesterday's mark survives into today's.")
+        .explain(r"Q/R", "The ratio of drift to noise",
+            "How much the world moves on its own, next to how badly one reading misses. It is the only thing the gain depends on.")
+}
+
+fn where_q_and_r_come_from(b: LessonBuilder) -> LessonBuilder {
+    b.rule()
+        .heading("Where Q and R come from")
+        .para(|p| p
+            .text("This is the first thing that stops anyone actually using a filter, and the lesson has so far defined both numbers without saying where either comes from."))
+        .para(|p| p
+            .text("The measurement noise is measurable, and a bond has an instrument. Ask five dealers for the same bond within the same minute and read the dispersion. Say they come back 102, 102, 104, 106, 106. The mean is 104; the departures are ")
+            .math(r"-2,-2,0,+2,+2")
+            .text("; the squares are 4, 4, 0, 4, 4, which sum to 16; divide by four — one fewer than the count, because the mean was estimated from the same five numbers — and ")
+            .math(r"R = 4")
+            .text(", a one-sigma of ")
+            .math(r"\pm\$2")
+            .text(". That is not a guess, and it is exactly the number this lesson has been using all along."))
+        .explain(r"-2", "Minus two dollars",
+            "One dealer's quote, measured from the average of the five.")
+        .explain(r"-2,0,+2,+2", "The other four departures",
+            "How far each of the remaining dealers sits from the average of the five.")
+        .para(|p| p
+            .text("The process noise is not measurable, and no amount of staring at quotes will produce it. It asks how far the fair value moved for reasons nobody quoted, and the difficulty is definitional: you never see that separately from the quoting noise. It is the modelling knob, and it should be called one."))
+        .para(|p| p
+            .text("The reassurance is that only the ratio matters. Write ")
+            .math(r"q = Q/R")
+            .text(" and ")
+            .math(r"u = P^-/R")
+            .text(". The steady state solves ")
+            .math(r"u^2 = qu + q")
+            .text(", and the gain is ")
+            .math(r"K = u/(u+1)")
+            .text(" — nothing but ")
+            .math(r"q")
+            .text(" appears anywhere. Double ")
+            .math(r"Q")
+            .text(" and ")
+            .math(r"R")
+            .text(" together and every gain in the filter is unchanged. You are not choosing two numbers. You are choosing one, and it answers a question you can actually hold: how much does this thing really move overnight, next to how badly one quote misses it?"))
+        .explain(r"q = Q/R", "The drift-to-noise ratio",
+            "How much the world moves on its own, in units of how badly one reading misses.")
+        .explain(r"P^-/R", "The prior variance, in units of the noise",
+            "Your own doubt measured against the instrument's, which is the only scale the gain reads.")
+        .explain(r"u^2", "u squared",
+            "The left-hand side of the steady state once every absolute size has been divided out.")
+        .explain(r"qu", "The ratio times u",
+            "One of the two terms the settling condition balances. Only the ratio survives here.")
+        .explain(r"u/", "u, divided by what follows",
+            "The prior variance in noise units, about to be divided by one more than itself.")
+        .explain(r"(u+1)", "One more than u",
+            "The denominator of the settled gain.")
+        .para(|p| p
+            .text("Three settings make the knob concrete. At ")
+            .math(r"q = \frac12")
+            .text(" — the world drifting half as much per day as a quote is noisy — the gain is ")
+            .math(r"\frac12")
+            .text(": you split the difference every morning, and your memory of a print halves in a day. That is the bond you just ran. At ")
+            .math(r"q = 1")
+            .text(" the gain is ")
+            .math(r"0.618")
+            .text(", because ")
+            .math(r"u^2 = u+1")
+            .text(" is the golden ratio's defining equation; when the world moves as much as the quote misses, you chase 61.8% of the way. Small ")
+            .math(r"q")
+            .text(" ignores the market; large ")
+            .math(r"q")
+            .text(" chases the last print and calls it a fair value."))
+        .explain(r"q = 1", "Drift equal to noise",
+            "The world moving on its own exactly as much as a single reading misses by.")
+        .explain(r"0.618", "About sixty-two hundredths",
+            "The settled gain when drift equals noise: the golden ratio conjugate, and an artefact of that particular ratio rather than a general fact.")
+        .explain(r"u^2 = u+1", "The golden ratio's defining equation",
+            "What the steady state becomes when the ratio is one.")
+        .para(|p| p
+            .text("And you are not left guessing whether you chose well, because the test is already in your hands. The disagreements the filter prints must have variance ")
+            .math(r"S = P^- + R")
+            .text(" — here ")
+            .math(r"4+4 = 8")
+            .text(", one-sigma ")
+            .math(r"\pm\$2.83")
+            .text(" — and the normalised squared disagreement must average one. Run it on your own book and tune ")
+            .math(r"q")
+            .text(" until it does. Well above one means the filter claims more certainty than its own errors justify; well below means it is flinching from evidence it should be taking. On the three days above that average is 0.80, which on three days is noise rather than evidence — the test wants a few hundred days before it says anything at all. But it is the one honest way a knob nobody can measure gets tuned, and it is the difference between an uncertainty and a number someone made up."))
+        .explain(r"S = P^- + R", "The disagreement's own variance",
+            "How spread out the gap between quote and forecast ought to be, if the model is right.")
+        .explain(r"4+4 = 8", "Eight squared dollars",
+            "What that variance comes to on this bond.")
+        .explain(r"\pm\$2.83", "Give or take two dollars eighty-three",
+            "The one-sigma spread of the disagreements the filter should be seeing.")
+}
+
+fn where_the_spine_stops(b: LessonBuilder) -> LessonBuilder {
+    b.rule()
+        .heading("Where the spine stops")
+        .para(|p| p
+            .text("Three ideas, one line each. A belief is a pair — a number and a spread — and it is the spread, not the number, that decides what you actually do. Precisions add, so combining two independent sources is plain addition in the right coordinate, and the answer always reads \"old belief, plus a fraction of the disagreement\". A quadratic stays a quadratic under every operation the filter performs, which is why a belief that has run for a quarter of a million ticks still costs two numbers."))
+        .para(|p| p
+            .text("Now go back to the question on the second page. You carry a $100 mark with a variance of 4; a dealer quotes $104. How far do you move? If the quote is as good as your mark, half the way, to $102.00. If it is a thin day and the quote is wide, one tenth of the way, to $100.40. If it is near-useless junk, 3.8% of the way, to $100.15 — and you finish more certain than you started. If those three now arrive as one rule applied three times rather than as three rules, the lesson has done its job, and the rule is ")
+            .math(r"K = P^-/(P^- + R)")
+            .text(": not a formula you were told, but the only weighting that could be right."))
+        .explain(r"K = P^-/(P^- + R)", "The gain, one last time",
+            "Your own doubt over your doubt plus the instrument's. Every answer in this lesson is this one fraction.")
+        .para(|p| p
+            .text("What you can now re-derive. From Idea 1: why every step is two equations rather than one; why ")
+            .math(r"P")
+            .text(", ")
+            .math(r"Q")
+            .text(" and ")
+            .math(r"R")
+            .text(" are three different objects and not one; why the honest answer to \"what is it worth?\" is a distribution and never a number; and why doubling your doubt quarters your position rather than halving it. From Idea 2: the gain and every limiting case of it — a perfect sensor, a useless one, a certain prior, a prior that knows nothing; why measuring can never leave you less certain; why \"fuse two sensors\" and \"fuse belief with sensor\" are one operation; and why double-counting a single piece of evidence is the one thing that genuinely poisons the blend. From Idea 3: the predict equations; every sandwich in the subject, all of them one bracket-expansion; why the filter's memory never grows; and why the extended, unscented and particle filters must exist and what each surrenders."))
+        .para(|p| p
+            .text("And what is not here, named so you know what you are missing and what to search for. This lesson is the first three of the seven ideas. Idea 4 is the repair for a sensor that reads half a degree high for ever — you put the bias in the state and let the filter estimate it. Idea 5 is the sawtooth you just watched, studied as an object in its own right: the fixed point you solved for this one bond is the simplest case of the Riccati equation, and Idea 5 is when it stops being a bond and starts being a matrix. Idea 6 is where most of a real filter's power actually lives: measuring one state and watching a correlated one you never measured move as well. Idea 7 is the consistency test, which is the only thing standing between an uncertainty and a number someone made up. Beyond the ideas sit the nonlinear extensions, smoothing, tuning, the information filter, and the duality with optimal control. None of them is here. All of them are downstream of the three that are."))
+        .note("A belief is a pair. Precisions add. A quadratic stays a quadratic.")
 }
 
 /// Figure 1: two beliefs multiply into a third that is narrower than both.
@@ -3035,6 +2921,126 @@ const ILL_1_SVG_PRINT: &str = r##"<svg viewBox="0 0 440 250" xmlns="http://www.w
     <text x="277.6" y="217">4.40</text>
     <text x="232" y="246">value of the thing being estimated</text>
   </g>
+</svg>"##;
+
+/// Figure 3: three predict-update cycles — the mark steps, the band breathes.
+const ILL_3_SVG: &str = r##"<svg viewBox="0 0 440 286" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A mark stepping across three days inside a one-sigma band that widens while waiting and pinches when each quote lands">
+  <!-- local-level model F = H = 1, Q = 2, R = 4; opened at x+ = 100, P+ = 2
+       every day:  P- = P+ + Q  = 2 + 2 = 4
+                   K  = P-/(P- + R) = 4/8 = 1/2
+                   P+ = (1 - K)P-   = 4/2 = 2
+         P+ returns to 2 because 2 is the fixed point of P -> 4(P+2)/(P+6):
+         P(P+6) = 4P+8 -> P^2 + 2P - 8 = 0 -> P = 2 (or -4)
+       day 1: x- = 100.00, z = 104 -> x+ = 100.00 + 0.5*(104 - 100.00) = 102.00
+       day 2: x- = 102.00, z = 101 -> x+ = 102.00 + 0.5*(101 - 102.00) = 101.50
+       day 3: x- = 101.50, z = 103 -> x+ = 101.50 + 0.5*(103 - 101.50) = 102.25
+       one-sigma: sqrt2 = 1.4142136 ; sqrt3 = 1.7320508 ; sqrt4 = 2
+         each ramp's mid-day vertex is the exact P(t) = P+ + Q t at t = 1/2, i.e. P = 3, sd = sqrt3
+       px: v -> y = 226 - 24*(v - 97.5)      24*sqrt2 = 33.94 ; 24*sqrt3 = 41.57 ; 24*2 = 48
+         centres 100 -> 166 ; 102 -> 118 ; 101.5 -> 130 ; 102.25 -> 112
+         quotes  104 -> 70  ; 101 -> 142   ; 103 -> 94
+       x: day k update at 155 + 100(k-1); the update is drawn 6 px wide (prior 152, posterior 158)
+          only so the pinch is visible - in the model it is instantaneous -->
+  <text x="46" y="22" font-size="13" fill="#E8E6E3">Wait and the band widens. Look and it pinches.</text>
+
+  <line x1="46" y1="56" x2="46" y2="226" stroke="#E8E6E3" stroke-width="2"/>
+  <g font-size="12" fill="#E8E6E3" text-anchor="end">
+    <text x="40" y="74">$104</text><text x="40" y="122">$102</text>
+    <text x="40" y="170">$100</text><text x="40" y="218">$98</text>
+  </g>
+
+  <g stroke="#7F7C78" stroke-width="1" stroke-dasharray="4 4">
+    <line x1="155" y1="56" x2="155" y2="220"/>
+    <line x1="255" y1="56" x2="255" y2="220"/>
+    <line x1="355" y1="56" x2="355" y2="220"/>
+  </g>
+
+  <polygon fill="#FBBF24" fill-opacity="0.13" stroke="#FBBF24" stroke-width="1.5" points="55,132.06 103.5,124.43 152,118.00 158,84.06 205,76.43 252,70.00 258,96.06 305,88.43 352,82.00 358,78.06 358,145.94 352,178.00 305,171.57 258,163.94 252,166.00 205,159.57 158,151.94 152,214.00 103.5,207.57 55,199.94"/>
+  <polyline fill="none" stroke="#FBBF24" stroke-width="2.5" points="55,166 152,166 158,118 252,118 258,130 352,130 358,112"/>
+
+  <g fill="#60A5FA">
+    <circle cx="155" cy="70" r="4"/><circle cx="255" cy="142" r="4"/><circle cx="355" cy="94" r="4"/>
+  </g>
+  <g font-size="12" fill="#60A5FA">
+    <text x="148" y="62" text-anchor="end">quote 104</text>
+    <text x="248" y="146" text-anchor="end">quote 101</text>
+    <text x="362" y="98">quote 103</text>
+  </g>
+
+  <g font-size="12" fill="#FBBF24">
+    <text x="58" y="158">100.00</text><text x="162" y="110">102.00</text>
+    <text x="262" y="122">101.50</text><text x="362" y="116">102.25</text>
+  </g>
+
+  <text x="58" y="228" font-size="12" fill="#9A9793">a day passes: P = 4</text>
+  <text x="200" y="200" font-size="12" fill="#9A9793">a quote lands: P = 2</text>
+
+  <g font-size="12" fill="#E8E6E3" text-anchor="middle">
+    <text x="155" y="244">day 1</text><text x="255" y="244">day 2</text><text x="355" y="244">day 3</text>
+  </g>
+
+  <text x="46" y="262" font-size="11.5" fill="#9A9793">P runs 2, 4, 2, 4, 2, 4, 2 — up on each predict, down on each update.</text>
+  <text x="46" y="278" font-size="11.5" fill="#FBBF24">K = 1/2 at every step: this filter opened at its steady state.</text>
+</svg>"##;
+
+/// [`ILL_3_SVG`] as it was drawn, for white paper.
+const ILL_3_SVG_PRINT: &str = r##"<svg viewBox="0 0 440 286" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A mark stepping across three days inside a one-sigma band that widens while waiting and pinches when each quote lands">
+  <!-- local-level model F = H = 1, Q = 2, R = 4; opened at x+ = 100, P+ = 2
+       every day:  P- = P+ + Q  = 2 + 2 = 4
+                   K  = P-/(P- + R) = 4/8 = 1/2
+                   P+ = (1 - K)P-   = 4/2 = 2
+         P+ returns to 2 because 2 is the fixed point of P -> 4(P+2)/(P+6):
+         P(P+6) = 4P+8 -> P^2 + 2P - 8 = 0 -> P = 2 (or -4)
+       day 1: x- = 100.00, z = 104 -> x+ = 100.00 + 0.5*(104 - 100.00) = 102.00
+       day 2: x- = 102.00, z = 101 -> x+ = 102.00 + 0.5*(101 - 102.00) = 101.50
+       day 3: x- = 101.50, z = 103 -> x+ = 101.50 + 0.5*(103 - 101.50) = 102.25
+       one-sigma: sqrt2 = 1.4142136 ; sqrt3 = 1.7320508 ; sqrt4 = 2
+         each ramp's mid-day vertex is the exact P(t) = P+ + Q t at t = 1/2, i.e. P = 3, sd = sqrt3
+       px: v -> y = 226 - 24*(v - 97.5)      24*sqrt2 = 33.94 ; 24*sqrt3 = 41.57 ; 24*2 = 48
+         centres 100 -> 166 ; 102 -> 118 ; 101.5 -> 130 ; 102.25 -> 112
+         quotes  104 -> 70  ; 101 -> 142   ; 103 -> 94
+       x: day k update at 155 + 100(k-1); the update is drawn 6 px wide (prior 152, posterior 158)
+          only so the pinch is visible - in the model it is instantaneous -->
+  <text x="46" y="22" font-size="13" fill="#334155">Wait and the band widens. Look and it pinches.</text>
+
+  <line x1="46" y1="56" x2="46" y2="226" stroke="#334155" stroke-width="2"/>
+  <g font-size="12" fill="#334155" text-anchor="end">
+    <text x="40" y="74">$104</text><text x="40" y="122">$102</text>
+    <text x="40" y="170">$100</text><text x="40" y="218">$98</text>
+  </g>
+
+  <g stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 4">
+    <line x1="155" y1="56" x2="155" y2="220"/>
+    <line x1="255" y1="56" x2="255" y2="220"/>
+    <line x1="355" y1="56" x2="355" y2="220"/>
+  </g>
+
+  <polygon fill="#b45309" fill-opacity="0.13" stroke="#b45309" stroke-width="1.5" points="55,132.06 103.5,124.43 152,118.00 158,84.06 205,76.43 252,70.00 258,96.06 305,88.43 352,82.00 358,78.06 358,145.94 352,178.00 305,171.57 258,163.94 252,166.00 205,159.57 158,151.94 152,214.00 103.5,207.57 55,199.94"/>
+  <polyline fill="none" stroke="#b45309" stroke-width="2.5" points="55,166 152,166 158,118 252,118 258,130 352,130 358,112"/>
+
+  <g fill="#1d4ed8">
+    <circle cx="155" cy="70" r="4"/><circle cx="255" cy="142" r="4"/><circle cx="355" cy="94" r="4"/>
+  </g>
+  <g font-size="12" fill="#1d4ed8">
+    <text x="148" y="62" text-anchor="end">quote 104</text>
+    <text x="248" y="146" text-anchor="end">quote 101</text>
+    <text x="362" y="98">quote 103</text>
+  </g>
+
+  <g font-size="12" fill="#b45309">
+    <text x="58" y="158">100.00</text><text x="162" y="110">102.00</text>
+    <text x="262" y="122">101.50</text><text x="362" y="116">102.25</text>
+  </g>
+
+  <text x="58" y="228" font-size="12" fill="#64748b">a day passes: P = 4</text>
+  <text x="200" y="200" font-size="12" fill="#64748b">a quote lands: P = 2</text>
+
+  <g font-size="12" fill="#334155" text-anchor="middle">
+    <text x="155" y="244">day 1</text><text x="255" y="244">day 2</text><text x="355" y="244">day 3</text>
+  </g>
+
+  <text x="46" y="262" font-size="11.5" fill="#64748b">P runs 2, 4, 2, 4, 2, 4, 2 — up on each predict, down on each update.</text>
+  <text x="46" y="278" font-size="11.5" fill="#b45309">K = 1/2 at every step: this filter opened at its steady state.</text>
 </svg>"##;
 
 /// Figure 2: a round uncertainty blob sheared into a tilted ellipse.

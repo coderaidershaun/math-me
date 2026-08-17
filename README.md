@@ -13,10 +13,11 @@ Go do something fun for an hour or two and come back to learn some math!
 You'll have your own custom binary built, which you can run to start learning:
 
 ```sh
-cargo run --release --bin lesson-exponents
 cargo run --release --bin lesson-algebra-to-linear
+cargo run --release --bin lesson-exponents
 cargo run --release --bin lesson-kalman-filter
 cargo run --release --bin lesson-limits
+cargo run --release --bin lesson-probability
 cargo run --release --bin lesson-trig
 ```
 

@@ -51,3 +51,7 @@ typst-pdf = "0.15"
 typst-svg = "0.15"
 # Matched to the resvg egui_extras pulls in.
 usvg = "0.45"
+
+[[bin]]
+name = "lesson-probability"
+path = "lessons/lesson-probability.rs"
